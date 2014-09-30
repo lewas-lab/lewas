@@ -4,5 +4,5 @@ This python package supplied modules used by the [LEWAS](http://www.lewas.center
 
 ## Installation
 
-    python setup.py install
+    $ python setup.py install
 
