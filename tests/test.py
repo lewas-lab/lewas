@@ -15,8 +15,12 @@ from lewas.models import *
 ### parser to just return a list of coerced values
 
 def weather_helper(astring):
-    """A helper should take a string representing a single measurement
-    and return a Measurement object"""
+    """A helper should take a string representing a single measurement and
+    return a tupel or object representing that value. In this case we
+    return a Measurement object, the parser will then return a list of
+    Measurement objects
+
+    """
 
     (key, value) = astring.split("=")
     (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()

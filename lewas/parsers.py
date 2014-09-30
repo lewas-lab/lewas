@@ -30,26 +30,29 @@ def split_parser(regexp, astring, delim=" ", **kwargs):
             return [ typef(value) for (typef,value) in zip(types,values) ]
             
 
-### Below this is specific to the weather station
-
-def weather_helper(astring):
-    """A helper should take a string representing a single measurement
-    and return a Measurement object"""
-
-    (key, value) = astring.split("=")
-    (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
-    return Measurement(value, key, units)
-
 if __name__ == '__main__':
     import sys
+    
+    ### Below this is specific to the weather station
+
+    def weather_helper(astring):
+        """A helper should take a string representing a single measurement and
+        return something.  That list returned by the parser will be
+        comprised of elements returned by the helper
+
+        """
+
+        (key, value) = astring.split("=")
+        (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
+        return (value, key, units)
 
     string1 = "0R5,Th=25.9C,Vh=12.0N,Vs=15.2V\r\n"
 
     dataregex = re.compile(r'0R[0-5],(.*)')
-    measurements = parser(dataregex, string1, ",", helper=weather_helper)
+    values = split_parser(dataregex, string1, ",", helper=weather_helper)
     
-    for measurement in measurements:
-        print(measurement)
+    for v in values:
+        print(v)
 
     ### Let's say we have a sensor that just has a simple output
     ### format of comma separated numbers. 
@@ -66,17 +69,16 @@ if __name__ == '__main__':
     units2 = [ "m/s","mg/L","V","C" ]
     metrics2 = [ "wind speed", "dissolved oxygen", "battery voltage", "temperature" ]
     sensor_regex = re.compile(r'sensor2:\s+(.*)$')
-    values = parser(sensor_regex, string2, ",", units=units2, metrics=metrics2)
+    values = split_parser(sensor_regex, string2, ",", units=units2, metrics=metrics2)
 
-    measurements = [ Measurement(value,metric,unit) for (value,metric,unit) in zip(values,metrics2,units2) ] 
-    for m in measurements:
+    for m in values:
         print(m)
 
     ### Example of exception handling
 
     string3 = "sensor4: hot,cold,warm"
     try:
-        values = parser(sensor_regex, string3)
+        values = split_parser(sensor_regex, string3)
     except ParseError as e:
         sys.stderr.write("ParseError: {0}\ncontinuing...\n".format(e))
                 
