@@ -1,5 +1,3 @@
-#!/bin/env python3
-
 import re
 
 __all__ = [ 'split_parser', 'ParseError' ]
