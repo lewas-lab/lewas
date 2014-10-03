@@ -6,3 +6,7 @@ This python package supplied modules used by the [LEWAS](http://www.lewas.center
 
     $ python setup.py install
 
+## Test
+
+    $ cd tests/
+    $ python weather_station.py
