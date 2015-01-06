@@ -16,7 +16,7 @@ from lewas.models import *
 
 def weather_helper(astring):
     """A helper should take a string representing a single measurement and
-    return a tupel or object representing that value. In this case we
+    return a tuple or object representing that value. In this case we
     return a Measurement object, the parser will then return a list of
     Measurement objects
 

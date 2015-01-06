@@ -7,7 +7,7 @@ class Measurement:
         self.unit = unit
 
     def __repr__(self):
-        return "{2}: {0} {1}".format(self.value, self.unit, self.metric)
+        return "{}: {} {}".format(self.metric, self.value, self.unit)
 
 class Sensor:
     def __init__(self, **kwargs):
@@ -67,7 +67,6 @@ if __name__ == '__main__':
 
     class MyInstrument(Instrument):
         pass
-        
     
     myinstrument = MyInstrument(sys.stdout)
 
