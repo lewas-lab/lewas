@@ -71,12 +71,15 @@ class WeatherStation(lewas.models.Instrument):
 if __name__ == "__main__":
     interactive = False
     
-    with open("weather_data.txt", "r") as datastream:
-        ws = WeatherStation(datastream) ##(serial.Serial("/dev/TTYUSB0", 19200))
+    if len(sys.argv == 1):
+        datastream = open("weather_data.txt", "r")
+    else:
+        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1], 19200) #argv[1] e.g. USB0
 
-        print(ws)
+    ws = WeatherStation(datastream)
+    print(ws)
+    ws.run(IOPrinter())
 
-        ws.run(IOPrinter())
     #if not interactive:
     #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))
     #else:
