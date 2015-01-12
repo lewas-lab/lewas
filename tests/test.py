@@ -32,7 +32,9 @@ if __name__ == '__main__':
     string1 = "0R5,Th=25.9C,Vh=12.0N,Vs=15.2V\r\n"
 
     dataregex = re.compile(r'0R[0-5],(.*)')
-    measurements = split_parser(dataregex, string1, ",", helper=weather_helper)
+    weather_parser = split_parser(regexp=dataregex, delim=",", helper=weather_helper)
+
+    measurements = weather_parser(string1)
     
     for measurement in measurements:
         print(measurement)
@@ -52,7 +54,9 @@ if __name__ == '__main__':
     units2 = [ "m/s","mg/L","V","C" ]
     metrics2 = [ "wind speed", "dissolved oxygen", "battery voltage", "temperature" ]
     sensor_regex = re.compile(r'sensor2:\s+(.*)$')
-    values = split_parser(sensor_regex, string2, ",", units=units2, metrics=metrics2)
+    another_parser = split_parser(regexp=sensor_regex, delim=",", units=units2, metrics=metrics2)
+
+    values = another_parser(string2)
 
     measurements = [ Measurement(value,metric,unit) for (value,metric,unit) in zip(values,metrics2,units2) ] 
     for m in measurements:
@@ -64,7 +68,7 @@ if __name__ == '__main__':
 
     string3 = "sensor4: hot,cold,warm"
     try:
-        values = split_parser(sensor_regex, string3)
+        values = another_parser(string3)
     except ParseError as e:
         sys.stderr.write("ParseError: {0}\ncontinuing...\n".format(e))
                 

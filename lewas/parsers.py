@@ -20,9 +20,9 @@ def _split_parser(astring, **kwargs):
 
     if 'regexp' in kwargs:
         try:
-            values = regexp.search(astring).group(1).split(delim)
+            values = kwargs['regexp'].search(astring).group(1).split(delim)
         except AttributeError as e:
-            raise ParseError("/{0}/ does not match '{1}'".format(regexp.pattern,astring))
+            raise ParseError("/{0}/ does not match '{1}'".format(kwargs['regexp'].pattern,astring))
     else:
         values = astring.split(delim)
 
