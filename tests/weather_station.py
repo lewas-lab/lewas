@@ -74,7 +74,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
     else:
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1], 19200)) #argv[1] e.g. USB0
+        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
 
     ws = WeatherStation(datastream)
     print(ws)
