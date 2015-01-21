@@ -23,7 +23,7 @@ class WeatherStation(lewas.models.Instrument):
         """
         
         (key, value) = astring.split("=")
-        (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
+        (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
         m = lewas.models.Measurement(value, key, units)
         return m
 
