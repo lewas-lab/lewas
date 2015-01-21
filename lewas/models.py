@@ -46,10 +46,9 @@ class Instrument(object):
         return "Instrument: {0}".format(self.name)
 
     def run(self, datastore, **kwargs):
-        
-        measurements = [ self.parse(line) for line in self.datastream ]
-            
-        datastore.post(measurements, **kwargs)
+        for line in self.datastream:
+            measurements = [self.parse(line)]
+            datastore.post(measurements, **kwargs)
 
     def parse(self, line):
         # go through list of user supplied parsers, find a line that matches
