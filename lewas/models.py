@@ -9,6 +9,9 @@ class Measurement:
     def __repr__(self):
         return "{}: {} {}".format(self.metric, self.value, self.unit)
 
+    def __iter__(self):
+        return ((a, getattr(self, a)) for a in ["metric", "value", "unit"])
+
 class Sensor:
     def __init__(self, **kwargs):
         [ setattr(self, key, value) for key,value in kwargs.items() if key in ['metric','units','type'] ]
@@ -47,7 +50,7 @@ class Instrument(object):
 
     def run(self, datastore, **kwargs):
         for line in self.datastream:
-            measurements = [self.parse(line)]
+            measurements = self.parse(line)
             datastore.post(measurements, **kwargs)
 
     def parse(self, line):

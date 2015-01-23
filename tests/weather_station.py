@@ -9,7 +9,7 @@ import serial
 import re
 import lewas.models
 import lewas.parsers
-from lewas.datastores import IOPrinter
+import lewas.datastores
 
 #from lewas.models import *
 
@@ -78,7 +78,7 @@ if __name__ == "__main__":
 
     ws = WeatherStation(datastream)
     print(ws)
-    ws.run(IOPrinter())
+    ws.run(lewas.datastores.RESTPOST())
 
     #if not interactive:
     #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))
