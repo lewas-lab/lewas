@@ -50,8 +50,8 @@ if __name__ == '__main__':
         """
 
         (key, value) = astring.split("=")
-        (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
-        return (value, key, units)
+        (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
+        return (value, key, unit)
 
     string1 = "0R5,Th=25.9C,Vh=12.0N,Vs=15.2V\r\n"
 
@@ -74,7 +74,7 @@ if __name__ == '__main__':
     ### is rather nice, it allows us to programatically extract unit
     ### information without having to refer to the manual)
     units2 = [ "m/s","mg/L","V","C" ]
-    metrics2 = [ "wind speed", "dissolved oxygen", "battery voltage", "temperature" ]
+    metrics2 = [ "wind_speed", "dissolved_oxygen", "battery_voltage", "temperature" ]
     sensor_regex = re.compile(r'sensor2:\s+(.*)$')
     values = split_parser(sensor_regex, string2, ",", units=units2, metrics=metrics2)
 

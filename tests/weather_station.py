@@ -23,21 +23,21 @@ class WeatherStation(lewas.models.Instrument):
         """
         
         (key, value) = astring.split("=")
-        (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
-        m = lewas.models.Measurement(value, key, units)
+        (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
+        m = lewas.models.Measurement(value, key, unit, "weather_station", "stroubles1")
         return m
 
     ## should we define sensors in an array
-    sensors = { 'wind.DirectionMin': { 'metric': 'wind speed', 'units': 'm/s' },
-                'wind.DirectionAvg': { 'metric': 'wind speed', 'units': 'm/s' },
-                'wind.DirectionMax': { 'metric': 'wind speed', 'units': 'm/s' }
+    sensors = { 'wind.DirectionMin': { 'metric': 'wind_speed', 'unit': 'm/s' },
+                'wind.DirectionAvg': { 'metric': 'wind_speed', 'unit': 'm/s' },
+                'wind.DirectionMax': { 'metric': 'wind_speed', 'unit': 'm/s' }
             }
     ## let's just use the output of the sensor to determine metrics: one parser to rule them all.
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
     ## still figuring out what makes sense here
-    DirectionMin = lewas.models.Sensor(metric='wind speed', units='m/s')
-    WindGust = lewas.models.Sensor(metric='wind gust', units='m/s')
+    DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
+    WindGust = lewas.models.Sensor(metric='wind_gust', unit='m/s')
 
 
     #parsers = { r'/^0R1 (.*)$/': lewas.parsers.Split([ "wind.DirectionMin", "wind.DirectionAvg", "wind.DirectMax", "wind.speed", "wind.gust", "wind.lull"]),

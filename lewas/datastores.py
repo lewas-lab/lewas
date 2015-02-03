@@ -10,9 +10,11 @@ class RESTPOST():
     """Prototype HTTP POST datastore (format experimental, no data caching)"""
 
     def post(self, measurements, **kwargs):
-        dicts = [dict(m) for m in measurements]
-        d = {m["metric"]: {a: m[a] for a in ["unit", "value"]} for m in dicts}
-        url = urllib2.Request('http://127.1:5050/', json.dumps(d, indent=4),
+        for m in measurements:
+            d = {a: getattr(m, a) for a in ["unit", "value"]}
+            path = "http://127.1:5050/{}/{}/{}" \
+                   "".format(m.station, m.instrument, m.metric)
+            url = urllib2.Request(path, json.dumps(d, indent=4),
                             {'Content-Type': 'application/json+lewas'})
-        response = urllib2.urlopen(url)
-        print(response)
+            response = urllib2.urlopen(url)
+            print(response)

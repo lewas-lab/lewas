@@ -23,8 +23,8 @@ def weather_helper(astring):
     """
 
     (key, value) = astring.split("=")
-    (value,units) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
-    return Measurement(value, key, units)
+    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
+    return Measurement(value, key, unit)
 
 if __name__ == '__main__':
     import sys
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     ### is rather nice, it allows us to programatically extract unit
     ### information without having to refer to the manual)
     units2 = [ "m/s","mg/L","V","C" ]
-    metrics2 = [ "wind speed", "dissolved oxygen", "battery voltage", "temperature" ]
+    metrics2 = [ "wind_speed", "dissolved_oxygen", "battery_voltage", "temperature" ]
     sensor_regex = re.compile(r'sensor2:\s+(.*)$')
     another_parser = split_parser(regexp=sensor_regex, delim=",", units=units2, metrics=metrics2)
 

@@ -1,20 +1,22 @@
 import re
 
 class Measurement:
-    def __init__(self, value, metric, unit):
+    def __init__(self, value, metric, unit, instrument="", station=""):
         self.value = value
         self.metric = metric
         self.unit = unit
+        self.instrument = instrument
+        self.station = station
 
     def __repr__(self):
-        return "{}: {} {}".format(self.metric, self.value, self.unit)
+        return "{}/{}/{}: {} {}".format(self.station, self.instrument, self.metric, self.value, self.unit)
 
     def __iter__(self):
-        return ((a, getattr(self, a)) for a in ["metric", "value", "unit"])
+        return ((a, getattr(self, a)) for a in ["metric", "value", "unit", "instrument", "station"])
 
 class Sensor:
     def __init__(self, **kwargs):
-        [ setattr(self, key, value) for key,value in kwargs.items() if key in ['metric','units','type'] ]
+        [ setattr(self, key, value) for key,value in kwargs.items() if key in ['metric','unit','type'] ]
 
 #class ModelBase(type):
 #    def __init__(cls, name, bases, nmspc):
