@@ -11,10 +11,14 @@ class RESTPOST():
 
     def post(self, measurements, **kwargs):
         for m in measurements:
-            d = {a: getattr(m, a) for a in ["unit", "value"]}
-            path = "http://127.1:5050/{}/{}/{}" \
-                   "".format(m.station, m.instrument, m.metric)
+            d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
+            path = "/{}/{}".format(m.station, m.instrument)
+            path = "http://127.1:5050" + urllib.pathname2url(path)
             url = urllib2.Request(path, json.dumps(d, indent=4),
                             {'Content-Type': 'application/json+lewas'})
-            response = urllib2.urlopen(url)
+            try:
+                response = urllib2.urlopen(url)
+            except urllib2.HTTPError as e:
+                print(e)
+                response = None
             print(response)
