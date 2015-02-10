@@ -11,22 +11,19 @@ import lewas.models
 import lewas.parsers
 import lewas.datastores
 
-#from lewas.models import *
+def weather_helper(astring):
+    """A helper should take a string representing a single measurement and
+    return a tuple or object representing that value. In this case we
+    return a Measurement object, the parser will then return a list of
+    Measurement objects
+    """
+
+    (key, value) = astring.split("=")
+    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
+    m = lewas.models.Measurement(value, key, unit, "weather_station", "stroubles1")
+    return m
 
 class WeatherStation(lewas.models.Instrument):
-    def weather_helper(astring):
-        """A helper should take a string representing a single measurement and
-        return a tuple or object representing that value. In this case we
-        return a Measurement object, the parser will then return a list of
-        Measurement objects
-
-        """
-        
-        (key, value) = astring.split("=")
-        (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
-        m = lewas.models.Measurement(value, key, unit, "weather_station", "stroubles1")
-        return m
-
     ## should we define sensors in an array
     sensors = { 'wind.DirectionMin': { 'metric': 'wind_speed', 'unit': 'm/s' },
                 'wind.DirectionAvg': { 'metric': 'wind_speed', 'unit': 'm/s' },

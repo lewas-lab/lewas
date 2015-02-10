@@ -5,26 +5,15 @@ sys.path.append('../')
 
 import re
 
-from lewas.parsers import *
-from lewas.models import *
+from lewas.parsers import split_parser, ParseError
+from lewas.models import Measurement
+from weather_station import weather_helper
 
 ### Discussion: requiring that we pass metrics and units arrays to
 ### the parser was not a good design: parsing really doesn't
 ### require that information, it's just the construction of the
 ### Measurement object that does. I changed the definition of
 ### parser to just return a list of coerced values
-
-def weather_helper(astring):
-    """A helper should take a string representing a single measurement and
-    return a tuple or object representing that value. In this case we
-    return a Measurement object, the parser will then return a list of
-    Measurement objects
-
-    """
-
-    (key, value) = astring.split("=")
-    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z]+)',value).groups()
-    return Measurement(value, key, unit)
 
 if __name__ == '__main__':
     import sys
