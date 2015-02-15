@@ -15,8 +15,13 @@ weather_station_metrics = { 'Pa': ( 'air', 'pressure' ),
                             'Racc': ( 'rain', 'accumulation' ),
                             'T': ('air', 'temperature'),
                             'Ws': ('air', 'velocity'),
-                            'Vs': ('battery', 'voltage')
+                            'Vs': ('battery', 'voltage'),
+                            'Dm': ('wind', 'direction')
 }
+
+unit_conversion = { 'H': 'hPa',
+                    'P': '%RH'
+                }
 
 def weather_helper(astring):
     """A helper should take a string representing a single measurement and
@@ -31,6 +36,8 @@ def weather_helper(astring):
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
+        if unit in unit_conversion:
+            unit = unit_conversion[unit]
         m = lewas.models.Measurement(value, key, unit, "weather station", "stroubles1")
     except AttributeError, e:
         print("Error parsing: {}".format(value))
