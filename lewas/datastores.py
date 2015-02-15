@@ -41,10 +41,10 @@ class leapi():
             d['instrument'] = dict(name=m.instrument)
             url = urllib2.Request(host + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
-            print(json.dumps(d))
             try:
                 response = urllib2.urlopen(url)
             except urllib2.HTTPError as e:
+                print("Request data: {}".format(json.dumps(d)))
                 print(e)
                 response = None
             print(response)
