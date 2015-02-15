@@ -11,6 +11,13 @@ import lewas.models
 import lewas.parsers
 import lewas.datastores
 
+weather_station_metrics = { 'Pa': ( 'air', 'pressure' ),
+                            'Racc': ( 'rain', 'accumulation' ),
+                            'T': ('air', 'temperature'),
+                            'Ws': ('air', 'velocity'),
+                            'Vs': ('battery', 'voltage')
+}
+
 def weather_helper(astring):
     """A helper should take a string representing a single measurement and
     return a tuple or object representing that value. In this case we
@@ -19,8 +26,10 @@ def weather_helper(astring):
     """
 
     (key, value) = astring.split("=")
-    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#]+)',value).groups()
-    m = lewas.models.Measurement(value, key, unit, "weather_station", "stroubles1")
+    if key in weather_station_metrics:
+        key = weather_station_metrics[key]
+    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
+    m = lewas.models.Measurement(value, key, unit, "weather station", "stroubles1")
     return m
 
 class WeatherStation(lewas.models.Instrument):
@@ -29,6 +38,7 @@ class WeatherStation(lewas.models.Instrument):
                 'wind.DirectionAvg': { 'metric': 'wind_speed', 'unit': 'm/s' },
                 'wind.DirectionMax': { 'metric': 'wind_speed', 'unit': 'm/s' }
             }
+
     ## let's just use the output of the sensor to determine metrics: one parser to rule them all.
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
@@ -75,7 +85,7 @@ if __name__ == "__main__":
 
     ws = WeatherStation(datastream)
     print(ws)
-    ws.run(lewas.datastores.RESTPOST())
+    ws.run(lewas.datastores.leapi())
 
     #if not interactive:
     #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))
