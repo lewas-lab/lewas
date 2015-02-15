@@ -32,10 +32,24 @@ class leapi():
         host = "http://lewaspedia.enge.vt.edu:8080"
 
         for m in measurements:
+            if not hasattr(m, 'value'):
+                print("Error: {} has no attribute 'value'".format(m))
+                continue
+            if not hasattr(m, 'unit'):
+                print("Error: {} has no attribute 'unit'".format(m))
+                continue
+            for a in ["unit", "value", "metric"]:
+                if not getattr(m,a):
+                    print ("Error: m.{} ({}) is not truthy".format(a, m.a)
+                    continue
+                       
             d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
+            
             d['units'] = dict(abbv=d['unit'])
-            if isinstance(d['metric'], tuple):
-                d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
+            if not isinstance(d['metric'], tuple):
+                print("Error: d['metric'] ({}) is not a tuple".format(d['metric']))
+                continue
+            d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
             d['site'] = dict(id=m.station)
             d['datetime'] = str(datetime.now())
             d['instrument'] = dict(name=m.instrument)
