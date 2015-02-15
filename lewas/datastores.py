@@ -40,7 +40,7 @@ class leapi():
                 continue
             for a in ["unit", "value", "metric"]:
                 if not getattr(m,a):
-                    print ("Error: m.{} ({}) is not truthy".format(a, m.a)
+                    print ("Error: m.{} ({}) is not truthy".format(a, m.a))
                     continue
                        
             d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
