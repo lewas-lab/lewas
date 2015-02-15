@@ -16,7 +16,8 @@ weather_station_metrics = { 'Pa': ( 'air', 'pressure' ),
                             'T': ('air', 'temperature'),
                             'Ws': ('air', 'velocity'),
                             'Vs': ('battery', 'voltage'),
-                            'Dm': ('wind', 'direction')
+                            'Dm': ('wind', 'direction'),
+                            'Ua': ('air', 'humidity')
 }
 
 unit_conversion = { 'H': 'hPa',
