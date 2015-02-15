@@ -28,8 +28,12 @@ def weather_helper(astring):
     (key, value) = astring.split("=")
     if key in weather_station_metrics:
         key = weather_station_metrics[key]
-    (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-    m = lewas.models.Measurement(value, key, unit, "weather station", "stroubles1")
+    m = None    
+    try:
+        (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
+        m = lewas.models.Measurement(value, key, unit, "weather station", "stroubles1")
+    except AttributeError, e:
+        print("Error parsing: {}".format(value))
     return m
 
 class WeatherStation(lewas.models.Instrument):
