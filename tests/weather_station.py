@@ -11,17 +11,24 @@ import lewas.models
 import lewas.parsers
 import lewas.datastores
 
-weather_station_metrics = { 'Pa': ( 'air', 'pressure' ),
-                            'Racc': ( 'rain', 'accumulation' ),
-                            'T': ('air', 'temperature'),
-                            'Ws': ('air', 'velocity'),
-                            'Vs': ('battery', 'voltage'),
-                            'Dm': ('wind', 'direction'),
-                            'Ua': ('air', 'humidity')
+weather_station_metrics = { 'Pa': ( 'air', 'pressure', 'hPa' ),
+                            'Rc': ( 'rain', 'accumulation', 'mm' ),
+                            'Rd': ( 'rain', 'duration', 's' ),
+                            'Ri': ( 'rain', 'intensity', 'mm/h' ),
+                            'Ta': ('air', 'temperature', 'C'),
+                            'Hc': ( 'hail', 'accumulation', 'hits/cm2' ),
+                            'Hd': ( 'hail', 'duration', 's' ),
+                            'Hi': ( 'hail', 'intensity', 'hits/cm2h'),
+                            'Sm': ('wind', 'speed', 'm/s'),
+                            'Vs': ('battery', 'voltage', 'V'),
+                            'Dm': ('wind', 'direction', 'D'),
+                            'Ua': ('air', 'humidity', '%RH')
 }
 
 unit_conversion = { 'H': 'hPa',
-                    'P': '%RH'
+                    'P': '%RH',
+                    'M': 'mm',
+                    
                 }
 
 def weather_helper(astring):
@@ -32,14 +39,14 @@ def weather_helper(astring):
     """
 
     (key, value) = astring.split("=")
+    units = None
     if key in weather_station_metrics:
         key = weather_station_metrics[key]
+        units = key[2]
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-        if unit in unit_conversion:
-            unit = unit_conversion[unit]
-        m = lewas.models.Measurement(value, key, unit, "weather station", "stroubles1")
+        m = lewas.models.Measurement(value, key, units, "weather station", "stroubles1")
     except AttributeError, e:
         print("Error parsing: {}".format(value))
     return m
