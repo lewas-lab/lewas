@@ -1,6 +1,9 @@
 import json, urllib, urllib2
 from datetime import datetime
+import pytz
 
+TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
+    
 class IOPrinter():
     """A datastore for debug and testing purposes: prints output to standard stream"""
 
@@ -28,8 +31,8 @@ class leapi():
     """Quick and dirty datastore for leapi application/json+lewas"""
 
     def post(self, measurements, **kwargs):
-        endpoint = "/observations"
-        host = "http://lewaspedia.enge.vt.edu:8080"
+        endpoint = "/observations"   # TODO: get from config?
+        host = "http://lewaspedia.enge.vt.edu:8080" # TODO: move to config parameter
 
         for m in measurements:
             if not hasattr(m, 'value'):
@@ -51,7 +54,7 @@ class leapi():
                 continue
             d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
             d['site'] = dict(id=m.station)
-            d['datetime'] = str(datetime.now())
+            d['datetime'] = str(datetime.now(TZ))
             d['instrument'] = dict(name=m.instrument)
             url = urllib2.Request(host + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
