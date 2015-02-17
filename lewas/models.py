@@ -14,6 +14,9 @@ class Measurement:
     def __iter__(self):
         return ((a, getattr(self, a)) for a in ["metric", "value", "unit", "instrument", "station"])
 
+    def __nonzero__(self):
+        return self.value is not None and self.metric is not None and self.unit is not None
+    
 class Sensor:
     def __init__(self, **kwargs):
         [ setattr(self, key, value) for key,value in kwargs.items() if key in ['metric','unit','type'] ]
@@ -52,7 +55,7 @@ class Instrument(object):
 
     def run(self, datastore, **kwargs):
         for line in self.datastream:
-            measurements = self.parse(line)
+            measurements = [ m for m in self.parse(line) if m ]
             datastore.post(measurements, **kwargs)
 
     def parse(self, line):
