@@ -61,7 +61,6 @@ class leapi():
             try:
                 response = urllib2.urlopen(url)
             except urllib2.HTTPError as e:
-                print("Request data: {}".format(json.dumps(d)))
-                print(e)
+                print("{}\n\trequest: {}".format(e, json.dumps(d)))
                 response = None
-            print(response)
+            #print(response)
