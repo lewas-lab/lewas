@@ -63,7 +63,7 @@ class leapi():
             except urllib2.HTTPError as e:
                 print("{}\n\trequest: {}".format(e, json.dumps(d)))
                 response = None
-            execpt urllib2.URLError as e:
+            except urllib2.URLError as e:
                 print("{}\n\turl: {}".format(e, url))
                 response = None
             #print(response)
