@@ -24,7 +24,7 @@ def _split_parser(astring, **kwargs):
         except AttributeError as e:
             raise ParseError("/{0}/ does not match '{1}'".format(kwargs['regexp'].pattern,astring))
     else:
-        values = astring.split(delim)
+        values = filter(None,astring.split(delim))
 
     if 'types' in kwargs:
         types = kwargs['types']
@@ -33,5 +33,9 @@ def _split_parser(astring, **kwargs):
         
     if 'helper' in kwargs:
         return [ kwargs['helper'](value) for value in values ]
+    elif 'fields' in kwargs:
+        print("fieldifying values '{}'".format(values))
+        fields = kwargs['fields']
+        return [ p(v) for p,v in zip(fields,values) ]
     else:
         return [ typef(value) for (typef,value) in zip(types,values) ]

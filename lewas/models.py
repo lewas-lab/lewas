@@ -29,7 +29,6 @@ class Sensor:
 #        print([m for m in dir(cls) if not m.startswith('__')])
 
 class Instrument(object):
-    #__metaclass__ = ModelBase
     """
     class representing an instrument
     """
@@ -55,17 +54,25 @@ class Instrument(object):
 
     def run(self, datastore, **kwargs):
         for line in self.datastream:
-            measurements = [ m for m in self.parse(line) if m ]
-            datastore.post(measurements, **kwargs)
+            try:
+                measurements = [ m for m in self.parse(line) if m ]
+            except ValueError as e:
+                print("ParseError: {}\ndata: {}".format(str(e), line))
+            else:
+                datastore.post(measurements, **kwargs)
 
     def parse(self, line):
         # go through list of user supplied parsers, find a line that matches
         result = []
-        for (pat, parser) in self.parsers.items():
-            pat = re.compile(pat)
-            m = pat.match(line)
-            if m:
-                result = parser(m.group(1))
+        if hasattr(self.parsers, 'items'):
+            for (pat, parser) in self.parsers.items():
+                pat = re.compile(pat)
+                m = pat.match(line)
+                if m:
+                    result = parser(m.group(1))
+        else:
+            result = getattr(self,'parsers')(line)
+            
         return result
                 
 
