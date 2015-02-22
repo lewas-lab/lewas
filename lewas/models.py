@@ -40,8 +40,8 @@ class Instrument(object):
     #    else:
     #        return inst
 
-    def __init__(self, datastream, site="test1"):
-        self.name = self.__class__.__name__
+    def __init__(self, datastream, site="test1", **kwargs):
+        self.name = self.__class__.__name__ if 'name' not in kwargs else kwargs['name']
         self.datastream = datastream
         self.site = site
         #for (prop,value) in inspect.getmembers(self):
@@ -50,13 +50,20 @@ class Instrument(object):
         #for (prop,value) in vars(self).iteritems():
         #    print("{0}: {1}".format(prop,value))
 
+    def _populat_measurement(self,m):
+        setattr(m,'instrument', self.name.lower())
+        setattr(m,'station', self.site)
+        return m
+    
     def __repr__(self):
         return "Instrument: {0}".format(self.name)
 
     def run(self, datastore, **kwargs):
+        if 'site_id' not in kwargs:
+            kwargs['site_id'] = self.site
         for line in self.datastream:
             try:
-                measurements = [ m for m in self.parse(line) if m ]
+                measurements = [ self._populat_measurement(m) for m in self.parse(line) if m ]
             except ValueError as e:
                 print("ParseError: {}\ndata: {}".format(str(e), line))
             else:

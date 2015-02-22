@@ -45,7 +45,7 @@ def weather_helper(astring):
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-        m = lewas.models.Measurement(value, key, units, "weather station", "stroubles1")
+        m = lewas.models.Measurement(value, key, units)
     except AttributeError, e:
         print("Error parsing: {}".format(value))
     return m
@@ -60,6 +60,9 @@ class WeatherStation(lewas.models.Instrument):
     ## let's just use the output of the sensor to determine metrics: one parser to rule them all.
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
+    def __init__(self,datastream,site):
+        super(WeatherStation,self).__init__(datastream,site,name='weather station')
+        
     ## still figuring out what makes sense here
     #DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
     #WindGust = lewas.models.Sensor(metric='wind_gust', unit='m/s')

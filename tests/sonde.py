@@ -16,9 +16,9 @@ class unitParser():
         self.typef = typef
         self.metric = metric 
         self.units = units
-        self.instrument = kwargs['instrument']
+        self.instrument = kwargs['instrument'] if 'instrument' in kwargs else None
         #self.sensor = kwargs['sensor']
-        self.site = kwargs['site']
+        self.site = kwargs['site'] if 'site' in kwargs else None
 
     @property
     def units(self):
@@ -57,11 +57,9 @@ sonde_fields = [ (str, 'time', 'HHMMSS', 'time'),
                ]
 
 class Sonde(lewas.models.Instrument):
-    def __init__(self,datastream,site):
-        self.fields = [ unitParser(t,(mm,mn),u,instrument="sonde",site=site) for t,mm,mn,u in sonde_fields ]
-        self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=self.fields) }
-        super(Sonde,self).__init__(datastream,site)
-        
+    fields = [ unitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
+    parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
+            
     def start(self):
         pass
         

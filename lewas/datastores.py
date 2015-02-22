@@ -31,6 +31,9 @@ class leapi():
     """Quick and dirty datastore for leapi application/json+lewas"""
 
     def post(self, measurements, **kwargs):
+        site_id = None
+        if 'site_id' in kwargs:
+            site_id = kwargs['site_id']
         endpoint = "/observations"   # TODO: get from config?
         host = "http://lewaspedia.enge.vt.edu:8080" # TODO: move to config parameter
 
@@ -54,9 +57,10 @@ class leapi():
                 continue
             d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
             #d['site'] = dict(id=m.station)
+            m_site_id = m.station if m.station else site_id
             d['datetime'] = str(datetime.now(TZ))
             d['instrument'] = dict(name=m.instrument)
-            url = urllib2.Request(host + '/' + m.station + endpoint, json.dumps(d, indent=4),
+            url = urllib2.Request(host + '/' + m_site_id + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
