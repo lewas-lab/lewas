@@ -59,8 +59,8 @@ class leapi():
             #d['site'] = dict(id=m.station)
             m_site_id = m.station if m.station else site_id
             d['datetime'] = str(datetime.now(TZ))
-            d['instrument'] = dict(name=m.instrument)
-            url = urllib2.Request(host + '/' + m_site_id + endpoint, json.dumps(d, indent=4),
+            #d['instrument'] = dict(name=m.instrument)
+            url = urllib2.Request(host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
