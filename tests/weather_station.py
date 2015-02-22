@@ -5,7 +5,6 @@ sys.path.append('../')
 
 ## What is clearer, a class structure
 
-import serial
 import re
 import lewas.models
 import lewas.parsers
@@ -62,8 +61,8 @@ class WeatherStation(lewas.models.Instrument):
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
     ## still figuring out what makes sense here
-    DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
-    WindGust = lewas.models.Sensor(metric='wind_gust', unit='m/s')
+    #DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
+    #WindGust = lewas.models.Sensor(metric='wind_gust', unit='m/s')
 
 
     #parsers = { r'/^0R1 (.*)$/': lewas.parsers.Split([ "wind.DirectionMin", "wind.DirectionAvg", "wind.DirectMax", "wind.speed", "wind.gust", "wind.lull"]),
@@ -100,6 +99,7 @@ if __name__ == "__main__":
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
     else:
+        import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
 
     ws = WeatherStation(datastream)
