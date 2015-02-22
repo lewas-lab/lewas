@@ -12,12 +12,13 @@ import lewas.datastores
 
 # TODO: move this to parser module
 class unitParser():
-    def __init__(self,typef,metric,units,instrument,site):
+    def __init__(self,typef,metric,units,**kwargs):
         self.typef = typef
         self.metric = metric 
         self.units = units
-        self.instrument = instrument
-        self.site = site
+        self.instrument = kwargs['instrument']
+        self.sensor = kwargs['sensor']
+        self.site = kwargs['site']
 
     @property
     def units(self):
@@ -56,19 +57,21 @@ sonde_fields = [ (str, 'time', 'HHMMSS', 'time'),
                ]
 
 class Sonde(lewas.models.Instrument):
-    fields = [ unitParser(t,(mm,mn),u,"sonde","stroubles1") for t,mm,mn,u in sonde_fields ]
-        
-    parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
+    def __init__(self,site):
+        self.fields = [ unitParser(t,(mm,mn),u,"sonde",site) for t,mm,mn,u in sonde_fields ]
+        self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
 
     def start(self):
         pass
         
 if __name__ == '__main__':
+    site = 'test1'
     if len(sys.argv) == 1:
         datastream = open("sonde_data.txt", "r")
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. USB0
-
-    sonde = Sonde(datastream)
+        site = 'stroubles1'
+        
+    sonde = Sonde(datastream, site)
     sonde.run(lewas.datastores.leapi())

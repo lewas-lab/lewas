@@ -53,10 +53,10 @@ class leapi():
                 print("Error: d['metric'] ({}) is not a tuple".format(d['metric']))
                 continue
             d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
-            d['site'] = dict(id=m.station)
+            #d['site'] = dict(id=m.station)
             d['datetime'] = str(datetime.now(TZ))
             d['instrument'] = dict(name=m.instrument)
-            url = urllib2.Request(host + endpoint, json.dumps(d, indent=4),
+            url = urllib2.Request(host + '/' + m.station + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
