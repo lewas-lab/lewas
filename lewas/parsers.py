@@ -34,7 +34,6 @@ def _split_parser(astring, **kwargs):
     if 'helper' in kwargs:
         return [ kwargs['helper'](value) for value in values ]
     elif 'fields' in kwargs:
-        print("fieldifying values '{}'".format(values))
         fields = kwargs['fields']
         return [ p(v) for p,v in zip(fields,values) ]
     else:
