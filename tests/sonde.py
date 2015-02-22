@@ -57,10 +57,11 @@ sonde_fields = [ (str, 'time', 'HHMMSS', 'time'),
                ]
 
 class Sonde(lewas.models.Instrument):
-    def __init__(self,site):
+    def __init__(self,datastream,site):
         self.fields = [ unitParser(t,(mm,mn),u,"sonde",site) for t,mm,mn,u in sonde_fields ]
         self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
-
+        super(Sonde,self).__init__(datastream,site)
+        
     def start(self):
         pass
         

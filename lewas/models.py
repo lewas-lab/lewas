@@ -40,9 +40,10 @@ class Instrument(object):
     #    else:
     #        return inst
 
-    def __init__(self, datastream):
+    def __init__(self, datastream, site="test1"):
         self.name = self.__class__.__name__
         self.datastream = datastream
+        self.site = site
         #for (prop,value) in inspect.getmembers(self):
         #    print("{0}: {1}".format(prop,value))
             
