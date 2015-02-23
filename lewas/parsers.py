@@ -1,4 +1,5 @@
 import re
+import models
 
 __all__ = [ 'split_parser', 'ParseError' ]
 
@@ -38,3 +39,27 @@ def _split_parser(astring, **kwargs):
         return [ p(v) for p,v in zip(fields,values) ]
     else:
         return [ typef(value) for (typef,value) in zip(types,values) ]
+
+class unitParser():
+    def __init__(self,typef,metric,units,**kwargs):
+        self.typef = typef
+        self.metric = metric
+        self.units = units
+        self.instrument = kwargs['instrument'] if 'instrument' in kwargs else None
+        #self.sensor = kwargs['sensor']
+        self.site = kwargs['site'] if 'site' in kwargs else None
+
+    @property
+    def units(self):
+        return self.units
+
+    @property
+    def metric(self):
+        return self.metrics
+
+    def __call__(self,value):
+        v = self.typef(value)
+        return models.Measurement(value,self.metric,self.units,self.instrument,self.site)
+
+    def __repr__(self):
+        return "unitParser ({})".format((self.typef,self.metric,self.units,self.instrument,self.site))

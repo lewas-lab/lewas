@@ -10,34 +10,6 @@ import lewas.models
 import lewas.parsers
 import lewas.datastores
 
-# TODO: move this to parser module
-class unitParser():
-    def __init__(self,typef,metric,units,**kwargs):
-        self.typef = typef
-        self.metric = metric 
-        self.units = units
-        self.instrument = kwargs['instrument'] if 'instrument' in kwargs else None
-        #self.sensor = kwargs['sensor']
-        self.site = kwargs['site'] if 'site' in kwargs else None
-
-    @property
-    def units(self):
-        return self.units
-
-    @property
-    def metric(self):
-        return self.metrics
-    
-    def __call__(self,value):
-        v = self.typef(value)
-        return lewas.models.Measurement(value,self.metric,self.units,self.instrument,self.site)
-
-    def __repr__(self):
-        return "unitParser ({})".format((self.typef,self.metric,self.units,self.instrument,self.site))
-    
-class timeParser(unitParser):
-    pass
-
 # NOTE: fields and field order are determined by the configuration of
 # the Sonde and are not necessarily constant. Eventually we should add
 # a getHeaders() function that retreives and parses the column header
@@ -57,7 +29,7 @@ sonde_fields = [ (str, 'time', 'HHMMSS', 'time'),
                ]
 
 class Sonde(lewas.models.Instrument):
-    fields = [ unitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
+    fields = [ lewas.parsers.unitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
     parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
             
     def start(self):
