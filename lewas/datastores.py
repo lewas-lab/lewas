@@ -44,7 +44,7 @@ class leapi():
             if not hasattr(m, 'unit'):
                 print("Error: {} has no attribute 'unit'".format(m))
                 continue
-            for a in ["unit", "value", "metric"]:
+            for a in ["unit", "metric"]: #don't check value because that breaks if it's 0
                 if not getattr(m,a):
                     print ("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
                     continue
@@ -52,14 +52,15 @@ class leapi():
             d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
             
             d['units'] = dict(abbv=d['unit'])
-            if not isinstance(d['metric'], tuple):
-                print("Error: d['metric'] ({}) is not a tuple".format(d['metric']))
+            if not isinstance(d['metric'], tuple) or len(d['metric']) != 2:
+                print("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
                 continue
             d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
             #d['site'] = dict(id=m.station)
             m_site_id = m.station if m.station else site_id
             d['datetime'] = str(datetime.now(TZ))
             #d['instrument'] = dict(name=m.instrument)
+            d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
             url = urllib2.Request(host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
