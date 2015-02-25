@@ -48,8 +48,8 @@ profile_fields = lambda cellnum: [
     (float, 'water', 'lateral velocity cell {0}'.format(cellnum), 'cm/s'),
     (float, 'water', 'downstream velocity cell {0} std error'.format(cellnum), 'cm/s'),
     (float, 'water', 'lateral velocity cell {0} std error'.format(cellnum), 'cm/s'),
-    (float, 'beam', 'signal strength 1'.format(cellnum), 'counts'),
-    (float, 'beam', 'signal strength 2'.format(cellnum), 'counts'),
+    (float, 'beam', 'signal strength 1 cell{0}'.format(cellnum), 'counts'),
+    (float, 'beam', 'signal strength 2 cell{0}'.format(cellnum), 'counts'),
 ]
 
 
