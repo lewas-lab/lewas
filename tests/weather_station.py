@@ -20,15 +20,9 @@ weather_station_metrics = { 'Pa': ( 'air', 'pressure', 'hPa' ),
                             'Hi': ( 'hail', 'intensity', 'hits/cm2h'),
                             'Sm': ('wind', 'speed', 'm/s'),
                             'Vs': ('battery', 'voltage', 'V'),
-                            'Dm': ('wind', 'direction', 'D'),
+                            'Dm': ('wind', 'direction', 'degrees'),
                             'Ua': ('air', 'humidity', '%RH')
 }
-
-unit_conversion = { 'H': 'hPa',
-                    'P': '%RH',
-                    'M': 'mm',
-                    
-                }
 
 def weather_helper(astring):
     """A helper should take a string representing a single measurement and
