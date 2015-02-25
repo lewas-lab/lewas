@@ -42,19 +42,37 @@ argo_fields = [
     (float, 'beam', 'noise level 3', 'counts'),
 ]
 
+profile_fields = lambda cellnum: [
+    (float, 'beam', 'cell number', None),
+    (float, 'water', 'downstream velocity cell {0}'.format(cellnum), 'cm/s'),
+    (float, 'water', 'lateral velocity cell {0}'.format(cellnum), 'cm/s'),
+    (float, 'water', 'downstream velocity cell {0} std error'.format(cellnum), 'cm/s'),
+    (float, 'water', 'lateral velocity cell {0} std error'.format(cellnum), 'cm/s'),
+    (float, 'beam', 'signal strength 1'.format(cellnum), 'counts'),
+    (float, 'beam', 'signal strength 2'.format(cellnum), 'counts'),
+]
+
+
 class Argonaut(lewas.models.Instrument):
     fields = [ lewas.parsers.unitParser(t,(mm,mn),u) for t,mm,mn,u in argo_fields ]
-    parsers = { r'(.{80}.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
+    parsers = { r'(([0-9\.\-]+ +){30}[0-9\.\-]+)': lewas.parsers.split_parser(delim=' ',fields=fields) }
+    for i in range(1, 11):
+        fields = [ lewas.parsers.unitParser(t,(mm,mn),u) for t,mm,mn,u in profile_fields(i) ]
+        parsers['( *%s +([0-9\.\-]+ +){5}[0-9\.\-]+)' % i] = \
+                lewas.parsers.split_parser(delim=' ', fields=fields)
        
 if __name__ == '__main__':
     site = 'test1'
     if len(sys.argv) == 1:
-        datastream = open("argonaut_data_one_stopbit.txt", "r")
+        datastream = open("argonaut_data.txt", "r")
+        datastore = lewas.datastores.IOPrinter()
+        site = 'test1'
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 9600) #argv[1] e.g. USB0
+        datastore = lewas.datastores.leapi()
         site = 'stroubles1'
         
     argo = Argonaut(datastream, site)
-    argo.run(lewas.datastores.leapi())
+    argo.run(datastore)
 
