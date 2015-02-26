@@ -40,7 +40,7 @@ def _split_parser(astring, **kwargs):
         for p,v in zip(fields,values):
             if isinstance(p,AttrParser):
                 p(measurements,v)
-        print("measuring: {}".format( [ m.metric for m in measurements ] ))
+        #print("measuring: {}".format( [ m.metric for m in measurements ] ))
         return measurements
     else:
         return [ typef(value) for (typef,value) in zip(types,values) ]
@@ -54,7 +54,7 @@ class AttrParser():
         self.pred = pred
 
     def __call__(self, measurements, value):
-        print("setting '{}' to '{}'".format(self.attr, value))
+        #print("setting '{}' to '{}'".format(self.attr, value))
         for m in measurements:
             if self.pred(m):
                 setattr(m, self.attr, self.typef(value))
