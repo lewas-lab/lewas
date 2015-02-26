@@ -64,13 +64,13 @@ class leapi():
             o = getattr(m, 'offset', () )
             if hasattr(o, '__iter__'):
                 d['offset'] = dict(zip( ('type','value'), o))
-            d['stderr'] = getattr(m,'stderr',None)
+	    stderr = getattr(m, 'stderr', None)
+            if not stderr == None:
+		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
             d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
             url = urllib2.Request(self.host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
-            if not d['stderr'] == None:
-                print(json.dumps(d))
             try:
                 response = urllib2.urlopen(url)
             except urllib2.HTTPError as e:
