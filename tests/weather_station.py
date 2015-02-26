@@ -39,7 +39,7 @@ def weather_helper(astring):
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-        m = lewas.models.Measurement(value, key, units)
+        m = lewas.models.Measurement(value, key[0:2], units)
     except AttributeError, e:
         print("Error parsing: {}".format(value))
     return m

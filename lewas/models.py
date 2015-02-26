@@ -1,15 +1,17 @@
 import re
 
 class Measurement:
-    def __init__(self, value, metric, unit, instrument="", station=""):
+    def __init__(self, value, metric, unit, **kwargs):
         self.value = value
         self.metric = metric
         self.unit = unit
-        self.instrument = instrument
-        self.station = station
-
+        self.stderr = kwargs['stderr'] if 'stderr' in kwargs else None
+        self.instrument = kwargs['instrument'] if 'instrument' in kwargs else ""
+        self.station = kwargs['station'] if 'station' in kwargs else ""
+        self.offset = kwargs['offset'] if 'offset' in kwargs else ()
+        
     def __repr__(self):
-        return "{}/{}/{}: {} {}".format(self.station, self.instrument, self.metric, self.value, self.unit)
+        return "{}/{}/{}: {} {} (stderr: {}, offset: {})".format(self.station, self.instrument, self.metric, self.value, self.unit, self.stderr, self.offset)
 
     def __iter__(self):
         return ((a, getattr(self, a)) for a in ["metric", "value", "unit", "instrument", "station"])
