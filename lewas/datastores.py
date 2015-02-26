@@ -62,14 +62,14 @@ class leapi():
             m_site_id = m.station if m.station else site_id
             d['datetime'] = str(datetime.now(TZ))
             o = getattr(m, 'offset', () )
-            if hasattr(o, '__iter__'):
+            if hasattr(o, '__iter__') and len(o) > 0:
                 d['offset'] = dict(zip( ('type','value'), o))
 	    stderr = getattr(m, 'stderr', None)
             if not stderr == None:
 		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
             d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
-            url = urllib2.Request(self.host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
+            url = urllib2.Request(self.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint), json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
