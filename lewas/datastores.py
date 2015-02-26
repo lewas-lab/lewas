@@ -30,12 +30,14 @@ class RESTPOST():
 class leapi():
     """Quick and dirty datastore for leapi application/json+lewas"""
 
+    def __init__(self, host="http://lewaspedia.enge.vt.edu:8080"):
+        self.host = host
+        
     def post(self, measurements, **kwargs):
         site_id = None
         if 'site_id' in kwargs:
             site_id = kwargs['site_id']
         endpoint = "/observations"   # TODO: get from config?
-        host = "http://lewaspedia.enge.vt.edu:8080" # TODO: move to config parameter
 
         for m in measurements:
             if not hasattr(m, 'value'):
@@ -65,7 +67,7 @@ class leapi():
             d['stderr'] = getattr(m,'stderr',None)
             #d['instrument'] = dict(name=m.instrument)
             d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
-            url = urllib2.Request(host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
+            url = urllib2.Request(self.host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             if not d['stderr'] == None:
                 print(json.dumps(d))
