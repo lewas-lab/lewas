@@ -37,12 +37,14 @@ class Sonde(lewas.models.Instrument):
         
 if __name__ == '__main__':
     site = 'test1'
+    host = 'http://localhost:5050'
     if len(sys.argv) == 1:
         datastream = open("sonde_data.txt", "r")
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. USB0
         site = 'stroubles1'
+	host = 'http://lewaspedia.enge.vt.edu:8080'
         
     sonde = Sonde(datastream, site)
-    sonde.run(lewas.datastores.leapi())
+    sonde.run(lewas.datastores.leapi(host))

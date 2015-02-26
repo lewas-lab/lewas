@@ -93,16 +93,18 @@ class WeatherStation(lewas.models.Instrument):
 if __name__ == "__main__":
     interactive = False
     site="test1"
+    host="http://localhost:5050"
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
         site="stroubles1"
+        host="http://lewaspedia.enge.vt.edu:8080"
         
     ws = WeatherStation(datastream,site)
     print(ws)
-    ws.run(lewas.datastores.leapi())
+    ws.run(lewas.datastores.leapi(host))
 
     #if not interactive:
     #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))
