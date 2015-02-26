@@ -32,6 +32,7 @@ def weather_helper(astring):
     """
 
     (key, value) = astring.split("=")
+    kkey = key
     units = None
     if key in weather_station_metrics:
         key = weather_station_metrics[key]
@@ -39,7 +40,10 @@ def weather_helper(astring):
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-        m = lewas.models.Measurement(value, key[0:2], units)
+        if unit == '#':
+            print("Invalid data: {}={}".format(kkey,value))
+        else:
+            m = lewas.models.Measurement(value, key[0:2], units)
     except AttributeError, e:
         print("Error parsing: {}".format(value))
     return m
