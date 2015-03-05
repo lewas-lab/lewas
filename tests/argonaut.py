@@ -65,17 +65,15 @@ class Argonaut(lewas.models.Instrument):
                 lewas.parsers.split_parser(delim=' ', fields=fields)
        
 if __name__ == '__main__':
-    site = 'test1'
     if len(sys.argv) == 1:
-        datastream = open("argonaut_data1.txt", "r")
-        #datastore = lewas.datastores.IOPrinter()
-        datastore = lewas.datastores.leapi('http://localhost:5050')
-        site = 'test1'
+        datastream = open("argonaut_data.txt", "r")
+        config = '../config.example'
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 9600) #argv[1] e.g. USB0
-        datastore = lewas.datastores.leapi()
-        site = 'stroubles1'
+        config = "../config"
+    datastore = lewas.datastores.leapi(config)
+    site = lewas.getsite(config)
         
     argo = Argonaut(datastream, site)
     argo.run(datastore)

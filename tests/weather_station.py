@@ -1,11 +1,7 @@
 #!/usr/bin/env python2
 
-import sys
+import sys, re
 sys.path.append('../')
-
-## What is clearer, a class structure
-
-import re
 import lewas.models
 import lewas.parsers
 import lewas.datastores
@@ -95,25 +91,16 @@ class WeatherStation(lewas.models.Instrument):
         
 
 if __name__ == "__main__":
-    interactive = False
-    site="test1"
-    host="http://localhost:5050"
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
+        config = '../config.example'
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
-        site="stroubles1"
-        host="http://lewaspedia.enge.vt.edu:8080"
+        config = "../config"
+    datastore = lewas.datastores.leapi(config)
+    site = lewas.getsite(config)
         
-    ws = WeatherStation(datastream,site)
-    print(ws)
-    ws.run(lewas.datastores.leapi(host))
-
-    #if not interactive:
-    #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))
-    #else:
-    #    pass
-        ## run checks, prompt user to reset, check a particular value,
-        ## etc.
+    ws = WeatherStation(datastream, site)
+    ws.run(datastore)
 

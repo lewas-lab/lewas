@@ -1,43 +1,33 @@
-import json, urllib, urllib2
+import json, urllib, urllib2, ConfigParser, os, sys
 from datetime import datetime
 import pytz
 
 TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
     
 class IOPrinter():
-    """A datastore for debug and testing purposes: prints output to standard stream"""
+    """A datastore for debug and testing purposes: prints measurements to stdout"""
 
     def post(self, measurements, **kwargs):
         print(measurements)
 
-class RESTPOST():
-    """Prototype HTTP POST datastore (format experimental, no data caching)"""
-
-    def post(self, measurements, **kwargs):
-        for m in measurements:
-            d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
-            path = "/{}/{}".format(m.station, m.instrument)
-            path = "http://127.1:5050" + urllib.pathname2url(path)
-            url = urllib2.Request(path, json.dumps(d, indent=4),
-                            {'Content-Type': 'application/json'})
-            try:
-                response = urllib2.urlopen(url)
-            except urllib2.HTTPError as e:
-                print(e)
-                response = None
-            print(response)
-
 class leapi():
-    """Quick and dirty datastore for leapi application/json+lewas"""
+    """Datastore for leapi application/json"""
 
-    def __init__(self, host="http://lewaspedia.enge.vt.edu:8080"):
-        self.host = host
+    def __init__(self, config="../config"):
+        c = ConfigParser.RawConfigParser()
+        c.read(os.path.abspath(config))
+        c = {i[0]: i[1] for i in c.items("leapi")}
+        self.host = c.get("host")
+        self.password = c.get("password")
+        self.storage = os.path.abspath(c.get("storage", "../requests"))
+        if not os.path.exists(self.storage):
+            os.makedirs(self.storage)
+        self.endpoint = c.get("endpoint", "/observations")
         
     def post(self, measurements, **kwargs):
         site_id = None
         if 'site_id' in kwargs:
             site_id = kwargs['site_id']
-        endpoint = "/observations"   # TODO: get from config?
 
         for m in measurements:
             if not hasattr(m, 'value'):
@@ -46,7 +36,7 @@ class leapi():
             if not hasattr(m, 'unit'):
                 print("Error: {} has no attribute 'unit'".format(m))
                 continue
-            for a in ["unit", "metric"]: #don't check value because that breaks if it's 0
+            for a in ["unit", "metric"]: #don't check "value" because that breaks if it's 0
                 if not getattr(m,a):
                     print ("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
                     continue
@@ -58,18 +48,19 @@ class leapi():
                 print("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
                 continue
             d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
-            #d['site'] = dict(id=m.station)
-            m_site_id = m.station if m.station else site_id
-            d['datetime'] = str(datetime.now(TZ))
+            d['datetime'] = str(datetime.now(TZ)) #TODO: move this to Measurement constructor
             o = getattr(m, 'offset', () )
             if hasattr(o, '__iter__') and len(o) > 0:
                 d['offset'] = dict(zip( ('type','value'), o))
 	    stderr = getattr(m, 'stderr', None)
-            if not stderr == None:
+            if stderr != None:
 		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
-            d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
-            url = urllib2.Request(self.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint), json.dumps(d, indent=4),
+            if self.password:
+                d['magicsecret'] = self.password #FIXME: move to submission step
+            m_site_id = m.station if m.station else site_id
+            url = urllib2.Request(self.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
+                                  + m.instrument + self.endpoint), json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
@@ -79,4 +70,5 @@ class leapi():
             except urllib2.URLError as e:
                 print("{}\n\turl: {}".format(e, url))
                 response = None
+            sys.stdout.flush()
             #print(response)
