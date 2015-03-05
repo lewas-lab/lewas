@@ -20,15 +20,9 @@ weather_station_metrics = { 'Pa': ( 'air', 'pressure', 'hPa' ),
                             'Hi': ( 'hail', 'intensity', 'hits/cm2h'),
                             'Sm': ('wind', 'speed', 'm/s'),
                             'Vs': ('battery', 'voltage', 'V'),
-                            'Dm': ('wind', 'direction', 'D'),
+                            'Dm': ('wind', 'direction', 'degrees'),
                             'Ua': ('air', 'humidity', '%RH')
 }
-
-unit_conversion = { 'H': 'hPa',
-                    'P': '%RH',
-                    'M': 'mm',
-                    
-                }
 
 def weather_helper(astring):
     """A helper should take a string representing a single measurement and
@@ -38,6 +32,7 @@ def weather_helper(astring):
     """
 
     (key, value) = astring.split("=")
+    kkey = key
     units = None
     if key in weather_station_metrics:
         key = weather_station_metrics[key]
@@ -45,7 +40,10 @@ def weather_helper(astring):
     m = None    
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
-        m = lewas.models.Measurement(value, key, units)
+        if unit == '#':
+            print("Invalid data: {}={}".format(kkey,value))
+        else:
+            m = lewas.models.Measurement(value, key[0:2], units)
     except AttributeError, e:
         print("Error parsing: {}".format(value))
     return m
@@ -99,16 +97,18 @@ class WeatherStation(lewas.models.Instrument):
 if __name__ == "__main__":
     interactive = False
     site="test1"
+    host="http://localhost:5050"
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
     else:
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
         site="stroubles1"
+        host="http://lewaspedia.enge.vt.edu:8080"
         
     ws = WeatherStation(datastream,site)
     print(ws)
-    ws.run(lewas.datastores.leapi())
+    ws.run(lewas.datastores.leapi(host))
 
     #if not interactive:
     #    ws.run(lewas.datastores.ActiveRecord(WeatherStation))

@@ -1,4 +1,4 @@
 0R5,Th=25.9C,Vh=12.0N,Vs=15.2V
 0R1,Wdmin=0.98m/s,Wdavg=1.01m/s,Ws=0.99m/s,Wg=2.1m/s,Wl=0.01m/s
-0R2,T=31.0C,Hm=12.0g/kg,Pa=30.12inV
-0R3,Racc=3in,Rd=34m,Rin=2.3in
+0R2,Ta=42.42C,Hm=12.0g/kg,Pa=30.12inV
+0R3,Rc=3M,Rd=34s,Ri=2.3mm/h

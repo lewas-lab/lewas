@@ -30,12 +30,14 @@ class RESTPOST():
 class leapi():
     """Quick and dirty datastore for leapi application/json+lewas"""
 
+    def __init__(self, host="http://lewaspedia.enge.vt.edu:8080"):
+        self.host = host
+        
     def post(self, measurements, **kwargs):
         site_id = None
         if 'site_id' in kwargs:
             site_id = kwargs['site_id']
         endpoint = "/observations"   # TODO: get from config?
-        host = "http://lewaspedia.enge.vt.edu:8080" # TODO: move to config parameter
 
         for m in measurements:
             if not hasattr(m, 'value'):
@@ -59,9 +61,15 @@ class leapi():
             #d['site'] = dict(id=m.station)
             m_site_id = m.station if m.station else site_id
             d['datetime'] = str(datetime.now(TZ))
+            o = getattr(m, 'offset', () )
+            if hasattr(o, '__iter__') and len(o) > 0:
+                d['offset'] = dict(zip( ('type','value'), o))
+	    stderr = getattr(m, 'stderr', None)
+            if not stderr == None:
+		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
             d['magicsecret'] = "changethisafterssl" #FIXME: move to config option
-            url = urllib2.Request(host + '/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint, json.dumps(d, indent=4),
+            url = urllib2.Request(self.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' + m.instrument + endpoint), json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)
