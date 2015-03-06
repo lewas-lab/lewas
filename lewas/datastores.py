@@ -49,7 +49,7 @@ class leapi():
 		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
             if self.config.password:
-                d['magicsecret'] = self.password #FIXME: move to submission step
+                d['magicsecret'] = self.config.password #FIXME: move to submission step
             m_site_id = m.station if m.station else site_id
             url = urllib2.Request(self.config.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
                                   + m.instrument + self.config.endpoint), json.dumps(d, indent=4),
