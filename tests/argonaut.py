@@ -38,7 +38,7 @@ argo_fields = [
     (float, 'water', 'temperature', 'C'),
     (float, 'water', 'pressure', None),
     AttrParser(float, 'stderr', lambda x: x.metric == ('water', 'pressure')),
-    (float, 'battery', 'input power', 'V'),
+    (float, 'battery', 'voltage', 'V'),
     (float, 'beam', 'vertical sample start', 'm'),
     (float, 'beam', 'vertical sample end', 'm'),
     (float, 'beam', 'noise level 1', 'counts'),
