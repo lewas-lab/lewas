@@ -3,7 +3,7 @@ from config import Config
 
 __all__ = [ 'parsers','models' ]
 
-def readConfig(config):
+def readConfig(config="../config.example"):
     return Config(config)
 
 def getsite(config):
