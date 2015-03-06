@@ -13,16 +13,8 @@ class IOPrinter():
 class leapi():
     """Datastore for leapi application/json"""
 
-    def __init__(self, config="../config"):
-        c = ConfigParser.RawConfigParser()
-        c.read(os.path.abspath(config))
-        c = {i[0]: i[1] for i in c.items("leapi")}
-        self.host = c.get("host")
-        self.password = c.get("password")
-        self.storage = os.path.abspath(c.get("storage", "../requests"))
-        if not os.path.exists(self.storage):
-            os.makedirs(self.storage)
-        self.endpoint = c.get("endpoint", "/observations")
+    def __init__(self, config):
+        self.config = config
         
     def post(self, measurements, **kwargs):
         site_id = None
@@ -56,11 +48,11 @@ class leapi():
             if stderr != None:
 		d['stderr'] = stderr
             #d['instrument'] = dict(name=m.instrument)
-            if self.password:
+            if self.config.password:
                 d['magicsecret'] = self.password #FIXME: move to submission step
             m_site_id = m.station if m.station else site_id
-            url = urllib2.Request(self.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
-                                  + m.instrument + self.endpoint), json.dumps(d, indent=4),
+            url = urllib2.Request(self.config.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
+                                  + m.instrument + self.config.endpoint), json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
             try:
                 response = urllib2.urlopen(url)

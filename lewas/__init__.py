@@ -1,6 +1,10 @@
 import os, ConfigParser
+from config import Config
 
 __all__ = [ 'parsers','models' ]
+
+def readConfig(config):
+    return Config(config)
 
 def getsite(config):
     c = ConfigParser.RawConfigParser()

@@ -72,9 +72,10 @@ if __name__ == '__main__':
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 9600) #argv[1] e.g. USB0
         config = "../config"
+
+    config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
-    site = lewas.getsite(config)
         
-    argo = Argonaut(datastream, site)
+    argo = Argonaut(datastream, config.site)
     argo.run(datastore)
 

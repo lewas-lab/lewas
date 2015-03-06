@@ -43,8 +43,9 @@ if __name__ == '__main__':
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. USB0
         config = '../config'
+
+    config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
-    site = lewas.getsite(config)
         
-    sonde = Sonde(datastream, site)
+    sonde = Sonde(datastream, config.site)
     sonde.run(datastore)

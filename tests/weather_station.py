@@ -98,9 +98,10 @@ if __name__ == "__main__":
         import serial
         datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
         config = "../config"
+
+    config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
-    site = lewas.getsite(config)
         
-    ws = WeatherStation(datastream, site)
+    ws = WeatherStation(datastream, config.site)
     ws.run(datastore)
 
