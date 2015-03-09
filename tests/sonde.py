@@ -41,7 +41,7 @@ if __name__ == '__main__':
         config = '../config.example'
     else:
         import serial
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. USB0
+        datastream = serial.Serial("/dev/{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. ttyUSB0
         config = '../config'
 
     config = lewas.readConfig(config)
