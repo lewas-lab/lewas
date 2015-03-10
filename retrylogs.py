@@ -48,8 +48,6 @@ if __name__ == '__main__':
 
     sys.stderr.write("about to read lines\n")
     for code, request in request_generator(sys.stdin):
-        if not code == 500:
-            continue
         url = urllib2.Request(host + urllib2.quote('/sites/' + args.site + '/instruments/' \
                                                    + args.instrument + endpoint), json.dumps(request, indent=4),
                               {'Content-Type': 'application/json'})
@@ -62,7 +60,7 @@ if __name__ == '__main__':
             else:
                 sys.stderr.write("conflict, probably due to duplicate data\n")
         except urllib2.URLError as e:
-            sys.stderr.write("{}\n\turl: {}\n".format(e, url))
+            sys.stderr.write("{}\n\turl: {}\n".format(e, url.get_full_url()))
             response = None
 
 
