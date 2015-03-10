@@ -60,7 +60,7 @@ class leapi():
                 print("{}\n\trequest: {}".format(e, json.dumps(d)))
                 response = None
             except urllib2.URLError as e:
-                print("{}\n\turl: {}".format(e, url))
+                print("{}\t{}\n\trequest: {}".format(e, url.get_full_url(), json.dumps(d)))
                 response = None
             sys.stdout.flush()
             #print(response)
