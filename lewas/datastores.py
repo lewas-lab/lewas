@@ -54,8 +54,13 @@ class leapi():
             url = urllib2.Request(self.config.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
                                   + m.instrument + self.config.endpoint), json.dumps(d, indent=4),
                                   {'Content-Type': 'application/json'})
+            if self.config.sslkey and self.config.sslcrt:
+                opener = urllib2.build_opener(HTTPSClientAuthHandler(
+                                self.config.sslkey, self.config.sslcrt)).open
+            else:
+                opener = urllib2.urlopen
             try:
-                response = urllib2.urlopen(url)
+                response = opener(url)
             except urllib2.HTTPError as e:
                 print("{}\n\trequest: {}".format(e, json.dumps(d)))
                 response = None
@@ -64,3 +69,20 @@ class leapi():
                 response = None
             sys.stdout.flush()
             #print(response)
+
+import urllib2, httplib
+
+class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
+    def __init__(self, key, cert):
+        urllib2.HTTPSHandler.__init__(self)
+        self.key = key
+        self.cert = cert
+
+    def https_open(self, req):
+        # Rather than pass in a reference to a connection class, we pass in
+        # a reference to a function which, for all intents and purposes,
+        # will behave as a constructor
+        return self.do_open(self.getConnection, req)
+
+    def getConnection(self, host, timeout=300):
+        return httplib.HTTPSConnection(host, key_file=self.key, cert_file=self.cert)

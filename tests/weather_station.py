@@ -55,7 +55,7 @@ class WeatherStation(lewas.models.Instrument):
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
     def __init__(self,datastream,site):
-        super(WeatherStation,self).__init__(datastream,site,name='weather station')
+        super(WeatherStation,self).__init__(datastream,site,name='weather_station')
         
     ## still figuring out what makes sense here
     #DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
@@ -96,7 +96,7 @@ if __name__ == "__main__":
         config = '../config.example'
     else:
         import serial
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
+        datastream = serial.Serial("/dev/{}".format(sys.argv[1]), 19200) #argv[1] e.g. ttyUSB0
         config = "../config"
 
     config = lewas.readConfig(config)
