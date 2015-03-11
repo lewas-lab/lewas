@@ -37,11 +37,11 @@ def weather_helper(astring):
     try:
         (value,unit) = re.search(r'([0-9]+(?:\.[0-9]+)?)([a-zA-Z#/]+)',value).groups()
         if unit == '#':
-            print("Invalid data: {}={}".format(kkey,value))
+            sys.stderr.write("Invalid data: {}={}\n".format(kkey,value))
         else:
             m = lewas.models.Measurement(value, key[0:2], units)
     except AttributeError, e:
-        print("Error parsing: {}".format(value))
+        sys.stderr.write("Error parsing: {}\n".format(value))
     return m
 
 class WeatherStation(lewas.models.Instrument):
@@ -55,7 +55,7 @@ class WeatherStation(lewas.models.Instrument):
     parsers = { r'^0R[0-5],(.*)': lewas.parsers.split_parser(delim=',',helper=weather_helper) }
 
     def __init__(self,datastream,site):
-        super(WeatherStation,self).__init__(datastream,site,name='weather station')
+        super(WeatherStation,self).__init__(datastream,site,name='weather_station')
         
     ## still figuring out what makes sense here
     #DirectionMin = lewas.models.Sensor(metric='wind_speed', unit='m/s')
@@ -91,17 +91,19 @@ class WeatherStation(lewas.models.Instrument):
         
 
 if __name__ == "__main__":
+    timeout=0
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")
         config = '../config.example'
     else:
         import serial
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200) #argv[1] e.g. USB0
+        timeout=1
+        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, timeout=timeout) #argv[1] e.g. USB0
         config = "../config"
 
     config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
         
     ws = WeatherStation(datastream, config.site)
-    ws.run(datastore)
+    ws.run(datastore, timeout=timeout)
 

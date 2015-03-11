@@ -1,4 +1,5 @@
 import json, urllib, urllib2, ConfigParser, os, sys
+import itertools
 from datetime import datetime
 import pytz
 
@@ -9,6 +10,41 @@ class IOPrinter():
 
     def post(self, measurements, **kwargs):
         print(measurements)
+
+def marshal_observation(m, config, **kwargs):
+    if not hasattr(m, 'value'):
+        print("Error: {} has no attribute 'value'".format(m))
+        return {}
+    if not hasattr(m, 'unit'):
+        print("Error: {} has no attribute 'unit'".format(m))
+        return {}
+    for a in ["unit", "metric"]: #don't check "value" because that breaks if it's 0
+        if not getattr(m,a):
+            print ("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
+            return {}
+
+    d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
+
+    d['units'] = dict(abbv=d['unit'])
+    if not isinstance(d['metric'], tuple) or len(d['metric']) != 2:
+        print("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
+        return {}
+    d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
+    d['datetime'] = kwargs.get('datetime', str(datetime.now(TZ))) #TODO: move this to Measurement constructor
+    o = getattr(m, 'offset', () )
+    if hasattr(o, '__iter__') and len(o) > 0:
+        d['offset'] = dict(zip( ('type','value'), o))
+        stderr = getattr(m, 'stderr', None)
+        if stderr != None:
+            d['stderr'] = stderr
+            #d['instrument'] = dict(name=m.instrument)
+    if config.password:
+        d['magicsecret'] = config.password #FIXME: move to submission step
+
+    return d
+
+def mkey(m):
+    return (m.station, m.instrument)
 
 class leapi():
     """Datastore for leapi application/json"""
@@ -21,46 +57,28 @@ class leapi():
         if 'site_id' in kwargs:
             site_id = kwargs['site_id']
 
-        for m in measurements:
-            if not hasattr(m, 'value'):
-                print("Error: {} has no attribute 'value'".format(m))
-                continue
-            if not hasattr(m, 'unit'):
-                print("Error: {} has no attribute 'unit'".format(m))
-                continue
-            for a in ["unit", "metric"]: #don't check "value" because that breaks if it's 0
-                if not getattr(m,a):
-                    print ("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
-                    continue
-                       
-            d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
-            
-            d['units'] = dict(abbv=d['unit'])
-            if not isinstance(d['metric'], tuple) or len(d['metric']) != 2:
-                print("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
-                continue
-            d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
-            d['datetime'] = str(datetime.now(TZ)) #TODO: move this to Measurement constructor
-            o = getattr(m, 'offset', () )
-            if hasattr(o, '__iter__') and len(o) > 0:
-                d['offset'] = dict(zip( ('type','value'), o))
-	    stderr = getattr(m, 'stderr', None)
-            if stderr != None:
-		d['stderr'] = stderr
-            #d['instrument'] = dict(name=m.instrument)
-            if self.config.password:
-                d['magicsecret'] = self.config.password #FIXME: move to submission step
-            m_site_id = m.station if m.station else site_id
-            url = urllib2.Request(self.config.host + urllib2.quote('/sites/' + m_site_id + '/instruments/' \
-                                  + m.instrument + self.config.endpoint), json.dumps(d, indent=4),
+        for g,k in itertools.groupby(sorted(measurements, key=mkey), mkey):
+            site_id2, instrument_name = g
+            url = self.config.host + urllib2.quote('/sites/' + site_id + '/instruments/' \
+                                                   + instrument_name + self.config.endpoint)
+            now = str(datetime.now(TZ))
+            d = [ marshal_observation(m, self.config, datetime=now) for m in k]
+
+            request = urllib2.Request(url, json.dumps(d),
                                   {'Content-Type': 'application/json'})
+            #sys.stderr.write("trying {} {}\n\tHeaders: {}".format(request.get_method(), url, request.header_items()))
+            sys.stderr.write("request of {} observations\n".format(len(d)))
+            response = None
             try:
-                response = urllib2.urlopen(url)
+                response = urllib2.urlopen(request)
             except urllib2.HTTPError as e:
                 print("{}\n\trequest: {}".format(e, json.dumps(d)))
-                response = None
             except urllib2.URLError as e:
-                print("{}\n\turl: {}".format(e, url))
-                response = None
+                print("{}\n\turl: {}".format(e, request.get_full_url()))
+            finally:
+                pass
+                # TODO, should we log server response?
+                #if response is not None:
+                #    print("\tresponse: {}".format(response.read()))
             sys.stdout.flush()
             #print(response)

@@ -46,16 +46,22 @@ argo_fields = [
     (float, 'beam', 'noise level 3', 'counts'),
 ]    
     
-profile_fields = lambda cellnum: [
-    (float, 'beam', 'cell number', None),
-    UnitParser(float, ('water', 'downstream velocity'), 'cm/s', offset=('cell', cellnum) ),
-    UnitParser(float, ('water', 'lateral velocity'), 'cm/s', offset=('cell', cellnum) ),
-    AttrParser(float, 'stderr', has_attr( 'metric', ('water', 'downstream velocity'), () ) ), # and m.offset == ('cell', cellnum) ),
-    AttrParser(float, 'stderr', has_attr( 'metric', ('water', 'lateral velocity'), () ) ), # and m.offset == ('cell', cellnum) ),
-    UnitParser(float, ('beam', 'signal strength 1'), 'counts', offset=('cell', cellnum) ),
-    UnitParser(float, ('beam', 'signal strength 2'), 'counts', offset=('cell', cellnum) ),
-]
+def profile_fields(cellnum):
+    return [
+        (float, 'beam', 'cell number', None),
+        UnitParser(float, ('water', 'downstream velocity'), 'cm/s', offset=('cell', cellnum) ),
+        UnitParser(float, ('water', 'lateral velocity'), 'cm/s', offset=('cell', cellnum) ),
+        AttrParser(float, 'stderr', has_attr( 'metric', ('water', 'downstream velocity'), () ) ), # and m.offset == ('cell', cellnum) ),
+        AttrParser(float, 'stderr', has_attr( 'metric', ('water', 'lateral velocity'), () ) ), # and m.offset == ('cell', cellnum) ),
+        UnitParser(float, ('beam', 'signal strength 1'), 'counts', offset=('cell', cellnum) ),
+        UnitParser(float, ('beam', 'signal strength 2'), 'counts', offset=('cell', cellnum) ),
+    ]
 
+start_line = r'(([0-9\.\-]+ +){30}[0-9\.\-]+)'
+start_re = re.compile(start_line)
+cell_state_re = re.compile(r'cell[1-10]')
+
+    
 class Argonaut(lewas.models.Instrument):
     fields = [ field_rangler(f) for f in argo_fields ]
     parsers = { r'(([0-9\.\-]+ +){30}[0-9\.\-]+)': lewas.parsers.split_parser(delim=' ',fields=fields) }
@@ -65,17 +71,19 @@ class Argonaut(lewas.models.Instrument):
                 lewas.parsers.split_parser(delim=' ', fields=fields)
        
 if __name__ == '__main__':
+    timeout = 0
     if len(sys.argv) == 1:
-        datastream = open("argonaut_data.txt", "r")
+        datastream = open("argonaut_data_209.txt", "r")
         config = '../config.example'
     else:
         import serial
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 9600) #argv[1] e.g. USB0
+        timeout=1
+        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 9600, timeout=timeout) #argv[1] e.g. USB0
         config = "../config"
 
     config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
         
     argo = Argonaut(datastream, config.site)
-    argo.run(datastore)
+    argo.run(datastore, timeout=timeout)
 

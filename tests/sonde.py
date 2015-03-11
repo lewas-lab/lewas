@@ -16,7 +16,7 @@ import lewas.datastores
 # from the Sonde. To do that, send three space characters, wait for
 # H?:, send 'H', read two lines, those should be the headers
 
-sonde_fields = [ (str, 'time', 'HHMMSS', 'time'),
+sonde_fields = [ (str, 'time', 'HHMMSS', None),
                (float, 'water', 'temperature','C'),
                (float, 'water', 'pH','pH'),
                (float, 'water', 'specific conductance', 'mS/cm'),
@@ -36,16 +36,18 @@ class Sonde(lewas.models.Instrument):
         pass
         
 if __name__ == '__main__':
+    timeout=0
     if len(sys.argv) == 1:
         datastream = open("sonde_data.txt", "r")
         config = '../config.example'
     else:
         import serial
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0) #argv[1] e.g. USB0
+        timeout=1
+        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0,timeout=timeout) #argv[1] e.g. USB0
         config = '../config'
 
     config = lewas.readConfig(config)
     datastore = lewas.datastores.leapi(config)
         
     sonde = Sonde(datastream, config.site)
-    sonde.run(datastore)
+    sonde.run(datastore, timeout=1)

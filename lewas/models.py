@@ -1,4 +1,5 @@
 import re
+import logging
 
 class Measurement:
     def __init__(self, value, metric, unit, **kwargs):
@@ -29,6 +30,7 @@ class Sensor:
 #        cls.name = name
 #
 #        print([m for m in dir(cls) if not m.startswith('__')])
+
 
 class Instrument(object):
     """
@@ -63,13 +65,19 @@ class Instrument(object):
     def run(self, datastore, **kwargs):
         if 'site_id' not in kwargs:
             kwargs['site_id'] = self.site
-        for line in self.datastream:
-            try:
-                measurements = [ self._populat_measurement(m) for m in self.parse(line) if m ]
-            except ValueError as e:
-                print("ParseError: {}\ndata: {}".format(str(e), line))
-            else:
-                datastore.post(measurements, **kwargs)
+        
+        timeout = kwargs.get('timeout', 0)
+
+        if timeout:
+            if not hasattr(self.datastream, 'timeout'):
+                logging.warn("datastream {} does not have a timeout attribute, is it a PySerial stream?\n".format(self.datastream))
+            while True:
+                try:
+                    self._readlines(datastore, **kwargs)
+                except (KeyboardInterrupt, SystemExit):
+                    break
+        else:
+            self._readlines(datastore, **kwargs)
 
     def parse(self, line):
         # go through list of user supplied parsers, find a line that matches
@@ -85,6 +93,20 @@ class Instrument(object):
             
         return result
                 
+    def _readlines(self, datastore, **kwargs):
+        measurements = []
+        timeout = kwargs.get('timeout', 0)
+        for line in self.datastream:
+            try:
+                measurements = measurements + [ self._populat_measurement(m) for m in self.parse(line) if m ]
+            except ValueError as e:
+                print("ParseError: {}\ndata: {}".format(str(e), line))
+            else:
+                if not timeout:
+                    datastore.post(measurements, **kwargs)
+                    measurements = []
+        if timeout:
+            datastore.post(measurements, **kwargs)
 
 if __name__ == '__main__':
     import sys
