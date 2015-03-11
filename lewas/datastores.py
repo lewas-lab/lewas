@@ -14,21 +14,21 @@ class IOPrinter():
 
 def marshal_observation(m, config, **kwargs):
     if not hasattr(m, 'value'):
-        print("Error: {} has no attribute 'value'".format(m))
+        logging.error("Error: {} has no attribute 'value'".format(m))
         return {}
     if not hasattr(m, 'unit'):
-        print("Error: {} has no attribute 'unit'".format(m))
+        logging.error("Error: {} has no attribute 'unit'".format(m))
         return {}
     for a in ["unit", "metric"]: #don't check "value" because that breaks if it's 0
         if not getattr(m,a):
-            print ("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
+            logging.error("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
             return {}
 
     d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
 
     d['units'] = dict(abbv=d['unit'])
     if not isinstance(d['metric'], tuple) or len(d['metric']) != 2:
-        print("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
+        logging.error("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
         return {}
     d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
     d['datetime'] = kwargs.get('datetime', str(datetime.now(TZ))) #TODO: move this to Measurement constructor
@@ -80,9 +80,9 @@ class leapi():
             try:
                 response = opener(request)
             except urllib2.HTTPError as e:
-                print("{}\n\trequest: {}".format(e, json.dumps(d)))
+                logging.error("{}\n\trequest: {}".format(e, json.dumps(d)))
             except urllib2.URLError as e:
-                print("{}\n\turl: {}".format(e, request.get_full_url()))
+                logging.error("{}\n\turl: {}".format(e, request.get_full_url()))
             else:
                 logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
             finally:
