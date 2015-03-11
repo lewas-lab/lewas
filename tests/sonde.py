@@ -1,13 +1,13 @@
 #!/usr/bin/env python2
 
-import sys
-sys.path.append('../')
 import logging
 import os
+import re
+import sys
+sys.path.append('../')
 
 ## What is clearer, a class structure
 
-import re
 import lewas.models
 import lewas.parsers
 import lewas.datastores
@@ -38,6 +38,7 @@ class Sonde(lewas.models.Instrument):
         pass
         
 if __name__ == '__main__':
+    logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
     timeout=0
     if len(sys.argv) == 1:
         datastream = open("sonde_data.txt", "r")

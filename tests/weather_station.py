@@ -1,7 +1,11 @@
 #!/usr/bin/env python2
 
-import sys, re
+import logging
+import os
+import re
+import sys
 sys.path.append('../')
+
 import lewas.models
 import lewas.parsers
 import lewas.datastores
@@ -91,6 +95,7 @@ class WeatherStation(lewas.models.Instrument):
         
 
 if __name__ == "__main__":
+    logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
     timeout=0
     if len(sys.argv) == 1:
         datastream = open("weather_data.txt", "r")

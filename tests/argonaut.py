@@ -1,10 +1,14 @@
 #!/usr/bin/env python2
 
-import sys, re
+import logging
+import os
+import re
+import sys
 sys.path.append('../')
-import lewas.models
+
 from lewas.parsers import UnitParser, AttrParser, field_rangler
 import lewas.datastores
+import lewas.models
    
 #see page 257 of manual
 #2015 02 22 09 43 51     7.4     0.4   0.376   4.1   4.0  10.0 194 191 139   0    0.0   0.0   0.0  0.0  0.0  0.0   4.06      0.000    0.000  11.6   0.1    0.4  30  30  29
@@ -71,6 +75,7 @@ class Argonaut(lewas.models.Instrument):
                 lewas.parsers.split_parser(delim=' ', fields=fields)
        
 if __name__ == '__main__':
+    logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
     timeout = 0
     if len(sys.argv) == 1:
         datastream = open("argonaut_data_209.txt", "r")
