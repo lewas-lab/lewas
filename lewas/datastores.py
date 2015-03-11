@@ -2,6 +2,7 @@ import json, urllib, urllib2, ConfigParser, os, sys
 import itertools
 from datetime import datetime
 import pytz
+import logging
 
 TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
     
@@ -66,19 +67,46 @@ class leapi():
 
             request = urllib2.Request(url, json.dumps(d),
                                   {'Content-Type': 'application/json'})
+
             #sys.stderr.write("trying {} {}\n\tHeaders: {}".format(request.get_method(), url, request.header_items()))
-            sys.stderr.write("request of {} observations\n".format(len(d)))
+            logging.info("request of {} observations\n".format(len(d)))
             response = None
+
+            if self.config.sslkey and self.config.sslcrt:
+                opener = urllib2.build_opener(HTTPSClientAuthHandler(
+                                self.config.sslkey, self.config.sslcrt)).open
+            else:
+                opener = urllib2.urlopen
             try:
-                response = urllib2.urlopen(request)
+                response = opener(request)
             except urllib2.HTTPError as e:
                 print("{}\n\trequest: {}".format(e, json.dumps(d)))
             except urllib2.URLError as e:
                 print("{}\n\turl: {}".format(e, request.get_full_url()))
+            else:
+                logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
             finally:
                 pass
                 # TODO, should we log server response?
                 #if response is not None:
-                #    print("\tresponse: {}".format(response.read()))
+                logging.info("\tresponse: {}".format(response.read()))
+                response = None
             sys.stdout.flush()
             #print(response)
+
+import urllib2, httplib
+
+class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
+    def __init__(self, key, cert):
+        urllib2.HTTPSHandler.__init__(self)
+        self.key = key
+        self.cert = cert
+
+    def https_open(self, req):
+        # Rather than pass in a reference to a connection class, we pass in
+        # a reference to a function which, for all intents and purposes,
+        # will behave as a constructor
+        return self.do_open(self.getConnection, req)
+
+    def getConnection(self, host, timeout=300):
+        return httplib.HTTPSConnection(host, key_file=self.key, cert_file=self.cert)

@@ -2,6 +2,8 @@
 
 import sys
 sys.path.append('../')
+import logging
+import os
 
 ## What is clearer, a class structure
 
@@ -43,7 +45,7 @@ if __name__ == '__main__':
     else:
         import serial
         timeout=1
-        datastream = serial.Serial("/dev/tty{}".format(sys.argv[1]), 19200, xonxoff=0,timeout=timeout) #argv[1] e.g. USB0
+        datastream = serial.Serial("/dev/{}".format(sys.argv[1]), 19200, xonxoff=0,timeout=timeout) #argv[1] e.g. USB0
         config = '../config'
 
     config = lewas.readConfig(config)
