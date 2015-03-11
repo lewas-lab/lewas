@@ -1,5 +1,7 @@
 [leapi]
-host=http://localhost:5050
+host=http://localhost:5000
+password=changethisafterssl
+endpoint=/observations2
 
 [main]
 site=test1
