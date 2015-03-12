@@ -1,4 +1,4 @@
-import json, urllib, urllib2, ConfigParser, os, sys
+import json, urllib, urllib2, ConfigParser, os, sys, httplib
 import itertools
 from datetime import datetime
 import pytz
@@ -88,13 +88,11 @@ class leapi():
             finally:
                 pass
                 # TODO, should we log server response?
-                #if response is not None:
-                logging.info("\tresponse: {}".format(response.read()))
+                if response is not None:
+                    logging.info("\tresponse: {}".format(response.read()))
                 response = None
             sys.stdout.flush()
             #print(response)
-
-import urllib2, httplib
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def __init__(self, key, cert):
@@ -109,4 +107,4 @@ class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
         return self.do_open(self.getConnection, req)
 
     def getConnection(self, host, timeout=300):
-        return httplib.HTTPSConnection(host, key_file=self.key, cert_file=self.cert)
+        return httplib.HTTPSConnection(host, key_file=self.key, cert_file=self.cert, strict=True)

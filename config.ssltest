@@ -2,8 +2,8 @@
 host=https://lewaspedia.enge.vt.edu:58733
 #host=http://lewaspedia.enge.vt.edu:8080
 password=ssldebugtest
-sslkey=../stroubles1.key
-sslcrt=../stroubles1.crt
+sslkey=../keys/stroubles1.key
+sslcrt=../keys/stroubles1-bundle.crt
 
 [main]
 site=stroubles1
