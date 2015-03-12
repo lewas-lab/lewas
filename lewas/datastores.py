@@ -33,12 +33,12 @@ def marshal_observation(m, config, **kwargs):
     d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
     d['datetime'] = kwargs.get('datetime', str(datetime.now(TZ))) #TODO: move this to Measurement constructor
     o = getattr(m, 'offset', () )
+
     if hasattr(o, '__iter__') and len(o) > 0:
         d['offset'] = dict(zip( ('type','value'), o))
-        stderr = getattr(m, 'stderr', None)
-        if stderr != None:
-            d['stderr'] = stderr
-            #d['instrument'] = dict(name=m.instrument)
+
+    d['stderr'] = getattr(m, 'stderr', None)
+        
     if config.password:
         d['magicsecret'] = config.password #FIXME: move to submission step
 
@@ -68,7 +68,6 @@ class leapi():
             request = urllib2.Request(url, json.dumps(d),
                                   {'Content-Type': 'application/json'})
 
-            #sys.stderr.write("trying {} {}\n\tHeaders: {}".format(request.get_method(), url, request.header_items()))
             logging.info("request of {} observations\n".format(len(d)))
             response = None
 
@@ -86,13 +85,9 @@ class leapi():
             else:
                 logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
             finally:
-                pass
-                # TODO, should we log server response?
                 if response is not None:
                     logging.info("\tresponse: {}".format(response.read()))
-                response = None
             sys.stdout.flush()
-            #print(response)
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def __init__(self, key, cert):
