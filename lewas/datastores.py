@@ -1,11 +1,8 @@
 import json, urllib, urllib2, ConfigParser, os, sys, httplib
 import itertools
-from datetime import datetime
 import pytz
 import logging
 
-TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
-    
 class IOPrinter():
     """A datastore for debug and testing purposes: prints measurements to stdout"""
 
@@ -31,7 +28,7 @@ def marshal_observation(m, config, **kwargs):
         logging.error("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
         return {}
     d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
-    d['datetime'] = kwargs.get('datetime', str(datetime.now(TZ))) #TODO: move this to Measurement constructor
+    d['datetime'] = m.time
     o = getattr(m, 'offset', () )
 
     if hasattr(o, '__iter__') and len(o) > 0:
@@ -44,8 +41,7 @@ def marshal_observation(m, config, **kwargs):
 
     return d
 
-def mkey(m):
-    return (m.station, m.instrument)
+mkey = lambda m: (m.station, m.instrument)
 
 class leapi():
     """Datastore for leapi application/json"""
@@ -62,32 +58,35 @@ class leapi():
             site_id2, instrument_name = g
             url = self.config.host + urllib2.quote('/sites/' + site_id + '/instruments/' \
                                                    + instrument_name + self.config.endpoint)
-            now = str(datetime.now(TZ))
-            d = [ marshal_observation(m, self.config, datetime=now) for m in k]
+            d = [ marshal_observation(m, self.config, datetime=m.time) for m in k]
 
             request = urllib2.Request(url, json.dumps(d),
                                   {'Content-Type': 'application/json'})
 
             logging.info("request of {} observations\n".format(len(d)))
-            response = None
+            submitRequest(d, request, self.config)
 
-            if self.config.sslkey and self.config.sslcrt:
-                opener = urllib2.build_opener(HTTPSClientAuthHandler(
-                                self.config.sslkey, self.config.sslcrt)).open
-            else:
-                opener = urllib2.urlopen
-            try:
-                response = opener(request)
-            except urllib2.HTTPError as e:
-                logging.error("{}\n\trequest: {}".format(e, json.dumps(d)))
-            except urllib2.URLError as e:
-                logging.error("{}\n\turl: {}".format(e, request.get_full_url()))
-            else:
-                logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
-            finally:
-                if response is not None:
-                    logging.info("\tresponse: {}".format(response.read()))
-            sys.stdout.flush()
+def submitRequest(d, request, config):
+    #config is ONLY used for authentication
+    #FIXME: should not be passing in d, instead extract it from request (mw investigate how to do this)
+    response = None
+    if config.sslkey and config.sslcrt:
+        opener = urllib2.build_opener(HTTPSClientAuthHandler(
+                        config.sslkey, config.sslcrt)).open
+    else:
+        opener = urllib2.urlopen
+    try:
+        response = opener(request)
+    except urllib2.HTTPError as e:
+        logging.error("{}\n\trequest: {}".format(e, json.dumps(d)))
+    except urllib2.URLError as e:
+        logging.error("{}\n\turl: {}".format(e, request.get_full_url()))
+    else:
+        logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
+    finally:
+        if response is not None:
+            logging.info("\tresponse: {}".format(response.read()))
+    sys.stdout.flush()
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def __init__(self, key, cert):

@@ -1,5 +1,9 @@
 import re
 import logging
+from datetime import datetime
+import pytz
+
+TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
 
 class Measurement:
     def __init__(self, value, metric, unit, **kwargs):
@@ -10,7 +14,8 @@ class Measurement:
         self.instrument = kwargs['instrument'] if 'instrument' in kwargs else ""
         self.station = kwargs['station'] if 'station' in kwargs else ""
         self.offset = kwargs['offset'] if 'offset' in kwargs else ()
-        
+        self.time = str(datetime.now(TZ))
+
     def __repr__(self):
         return "{}/{}/{}: {} {} (stderr: {}, offset: {})".format(self.station, self.instrument, self.metric, self.value, self.unit, self.stderr, self.offset)
 
