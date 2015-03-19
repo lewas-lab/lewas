@@ -10,14 +10,14 @@ import lewas.models
 import lewas.parsers
 import lewas.datastores
 
-weather_station_metrics = { 'Pa': ( 'air', 'pressure', 'hPa' ),
-                            'Rc': ( 'rain', 'accumulation', 'mm' ),
+weather_station_metrics = { 'Pa': ( 'air', 'pressure', {'H': 'hPa', 'I': 'inHg', 'P': 'Pascal', 'B': 'Bar', 'M': 'mmHg'} ),
+                            'Rc': ( 'rain', 'accumulation', {'M': 'mm', 'I': 'in'} ),
                             'Rd': ( 'rain', 'duration', 's' ),
-                            'Ri': ( 'rain', 'intensity', 'mm/h' ),
-                            'Ta': ('air', 'temperature', 'F'),
-                            'Hc': ( 'hail', 'accumulation', 'hits/cm2' ),
+                            'Ri': ( 'rain', 'intensity', {'M': 'mm/h', 'I': 'in/h'} ),
+                            'Ta': ('air', 'temperature', {'F': 'F', 'C': 'C'}),
+                            'Hc': ( 'hail', 'accumulation', {'M': 'hits/cm2', 'I': 'hits/in2'} ),
                             'Hd': ( 'hail', 'duration', 's' ),
-                            'Hi': ( 'hail', 'intensity', 'hits/cm2h'),
+                            'Hi': ( 'hail', 'intensity', {'M': 'hits/cm2h', 'I': 'hits/in2h'}),
                             'Sm': ('wind', 'speed', 'm/s'),
                             'Vs': ('battery', 'voltage', 'V'),
                             'Dm': ('wind', 'direction', 'degrees'),
@@ -43,6 +43,8 @@ def weather_helper(astring):
         if unit == '#':
             sys.stderr.write("Invalid data: {}={}\n".format(kkey,value))
         else:
+            if hasattr(units,'get'):
+                units = units.get(unit, None)
             m = lewas.models.Measurement(value, key[0:2], units)
     except AttributeError, e:
         sys.stderr.write("Error parsing: {}\n".format(value))
