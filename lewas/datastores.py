@@ -36,6 +36,8 @@ def marshal_observation(m, config, **kwargs):
 
     d['stderr'] = getattr(m, 'stderr', None)
         
+    d['method_id'] = 1
+    
     if config.password:
         d['magicsecret'] = config.password #FIXME: move to submission step
 
