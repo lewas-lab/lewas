@@ -66,11 +66,10 @@ class leapi():
                                   {'Content-Type': 'application/json'})
 
             logging.info("request of {} observations\n".format(len(d)))
-            submitRequest(d, request, self.config)
+            submitRequest(request, self.config)
 
-def submitRequest(d, request, config):
+def submitRequest(request, config):
     #config is ONLY used for authentication
-    #FIXME: should not be passing in d, instead extract it from request (mw investigate how to do this)
     response = None
     if config.sslkey and config.sslcrt:
         opener = urllib2.build_opener(HTTPSClientAuthHandler(
@@ -80,11 +79,12 @@ def submitRequest(d, request, config):
     try:
         response = opener(request)
     except urllib2.HTTPError as e:
-        logging.error("{}\n\trequest: {}".format(e, json.dumps(d)))
+        logging.error("{}\n\trequest: {}".format(e, request.data))
     except urllib2.URLError as e:
-        logging.error("{}\n\turl: {}".format(e, request.get_full_url()))
+        logging.error("{}\n\turl: {}\n\trequest: {}".format(e, request.get_full_url(), request.data))
     else:
-        logging.info("{}\t{}\n\trequest: {}".format(response.getcode(), request.get_full_url(), json.dumps(d)))
+        logging.info("{}\t{}\n\trequest: {}".format(
+                response.getcode(), request.get_full_url(), request.data))
     finally:
         if response is not None:
             logging.info("\tresponse: {}".format(response.read()))
