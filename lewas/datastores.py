@@ -2,6 +2,9 @@ import json, urllib, urllib2, ConfigParser, os, sys, httplib
 import itertools
 import pytz
 import logging
+import hashlib
+import pickle
+import time
 
 class IOPrinter():
     """A datastore for debug and testing purposes: prints measurements to stdout"""
@@ -68,16 +71,19 @@ class leapi():
             logging.info("request of {} observations\n".format(len(d)))
             submitRequest(request, self.config)
 
-def submitRequest(request, config):
+def submitRequest(request, config, saveOnFail=True):
     #config is ONLY used for authentication
+
     response = None
     if config.sslkey and config.sslcrt:
         opener = urllib2.build_opener(HTTPSClientAuthHandler(
                         config.sslkey, config.sslcrt)).open
     else:
         opener = urllib2.urlopen
+    success = False
     try:
         response = opener(request)
+        success = True
     except urllib2.HTTPError as e:
         logging.error("{}\n\trequest: {}".format(e, request.data))
     except urllib2.URLError as e:
@@ -88,7 +94,15 @@ def submitRequest(request, config):
     finally:
         if response is not None:
             logging.info("\tresponse: {}".format(response.read()))
+        if saveOnFail and not success:
+            p = pickle.dumps(request)
+            h = hashlib.sha256()
+            h.update(p)
+            fn = str(int(time.mktime(time.gmtime())))+h.hexdigest() #todo: include instrument
+            fn = os.path.join(config.storage, h.hexdigest())
+            open(fn, 'w').write(p)
     sys.stdout.flush()
+    return success
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def __init__(self, key, cert):
