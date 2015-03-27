@@ -8,4 +8,6 @@ import lewas.models
 
 config = "../config"
 config = lewas.readConfig(config)
-lewas.datastores.submitRequest(pickle.load(open(sys.argv[1])), config, False)
+for fn in sys.argv[1:]:
+    lewas.datastores.submitRequest(pickle.load(open(fn)), config, False)
+    print "processed", fn
