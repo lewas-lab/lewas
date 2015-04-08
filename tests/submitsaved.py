@@ -11,5 +11,6 @@ config = lewas.readConfig(config)
 for fn in sys.argv[1:]:
     if not os.path.isfile(fn):
         print "can't read " + fn
+        continue
     lewas.datastores.submitRequest(pickle.load(open(fn)), config, False)
     print "processed", fn
