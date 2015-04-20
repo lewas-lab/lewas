@@ -3,6 +3,8 @@ import logging
 from datetime import datetime
 import pytz
 
+logger = logging.getLogger(__name__)
+
 TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
 
 class Measurement:
@@ -87,6 +89,7 @@ class Instrument(object):
     def parse(self, line):
         # go through list of user supplied parsers, find a line that matches
         result = []
+	logger.log(logging.INFO,"line:{}".format(line))
         if hasattr(self.parsers, 'items'):
             for (pat, parser) in self.parsers.items():
                 pat = re.compile(pat)

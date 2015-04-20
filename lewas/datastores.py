@@ -41,9 +41,6 @@ def marshal_observation(m, config, **kwargs):
         
     d['method_id'] = 1
     
-    if config.password:
-        d['magicsecret'] = config.password #FIXME: move to submission step
-
     return d
 
 mkey = lambda m: (m.station, m.instrument)
@@ -74,6 +71,12 @@ class leapi():
 def submitRequest(request, config, saveOnFail=True):
     #config is ONLY used for authentication
 
+    if config.password:
+        d = json.loads(request.data)
+        for m in d:
+            m['magicsecret'] = config.password
+        request.data = json.dumps(d)
+
     response = None
     if config.sslkey and config.sslcrt:
         opener = urllib2.build_opener(HTTPSClientAuthHandler(
@@ -85,12 +88,16 @@ def submitRequest(request, config, saveOnFail=True):
         response = opener(request)
         success = True
     except urllib2.HTTPError as e:
+        import traceback; traceback.print_exc()
         logging.error("{}\n\trequest: {}".format(e, request.data))
+	logging.error("\tresponse: {}".format(e.read()));
     except urllib2.URLError as e:
         logging.error("{}\n\turl: {}\n\trequest: {}".format(e, request.get_full_url(), request.data))
     else:
         logging.info("{}\t{}\n\trequest: {}".format(
                 response.getcode(), request.get_full_url(), request.data))
+	#TODO: would it be more clear to have the
+	#if saveOnFail # here?
     finally:
         if response is not None:
             logging.info("\tresponse: {}".format(response.read()))
@@ -100,7 +107,8 @@ def submitRequest(request, config, saveOnFail=True):
             h.update(p)
             fn = str(int(time.mktime(time.gmtime())))+h.hexdigest() #todo: include instrument
             fn = os.path.join(config.storage, h.hexdigest())
-            open(fn, 'w').write(p)
+            with open(fn, 'w') as f:
+                f.write(p)
     sys.stdout.flush()
     return success
 
