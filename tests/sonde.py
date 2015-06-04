@@ -22,12 +22,11 @@ sonde_fields = [ (str, 'time', 'HHMMSS', None),
                (float, 'water', 'temperature','C'),
                (float, 'water', 'pH','pH'),
                (float, 'water', 'specific conductance', 'mS/cm'),
-               (float, 'water', 'depth', 'm'),
-               (float, 'water', 'LDO%', '%'),
-               (float, 'water', 'dissolved oxygen', 'mg/l'),
-               (float, 'water', 'turbidity', 'NTU'),
+               (float, 'water', 'salinity', 'ppt'),  
                (float, 'water', 'Redox potential', 'mV'),
-               (float, 'battery', 'voltage', 'V')
+               (float, 'water', 'turbidity', 'NTU'),
+               (float, 'water', 'LDO%', '%'),
+               (float, 'water', 'dissolved oxygen', 'mg/l')
                ]
 
 class Sonde(lewas.models.Instrument):
