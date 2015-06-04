@@ -18,15 +18,42 @@ import lewas.datastores
 # from the Sonde. To do that, send three space characters, wait for
 # H?:, send 'H', read two lines, those should be the headers
 
+dfloat_regex = re.compile(r'([0-9]+(?:\.[0-9]+)?)([*~@#?])')
+
+class QualifiedFloat():
+    def __init__(self, value, qualifier):
+        self.value = value
+        self.qualifier = qualifier
+
+    def __float__(self):
+        return self.value
+
+def decorated_float(value):
+    try:
+        return float(value)
+    except ValueError:
+        m = dfloat_regex.match(value)
+        if m:
+            return QualifiedFloat(m.group(1), m.group(2))
+    return None
+
+decorations = { '#': 'Data out of sensor range',
+                '?': 'User service required or data outside calibrated range but still within sensor range',
+                '*': 'Parameter not calibrated',
+                '~': 'Temperature compensation error',
+                '@': 'Non temperature parameter compensation error'
+                }
+    
+    
 sonde_fields = [ (str, 'time', 'HHMMSS', None),
-               (float, 'water', 'temperature','C'),
-               (float, 'water', 'pH','pH'),
-               (float, 'water', 'specific conductance', 'mS/cm'),
-               (float, 'water', 'salinity', 'ppt'),  
-               (float, 'water', 'Redox potential', 'mV'),
-               (float, 'water', 'turbidity', 'NTU'),
-               (float, 'water', 'LDO%', '%'),
-               (float, 'water', 'dissolved oxygen', 'mg/l')
+               (decorated_float, 'water', 'temperature','C'),
+               (decorated_float, 'water', 'pH','pH'),
+               (decorated_float, 'water', 'specific conductance', 'mS/cm'),
+               (decorated_float, 'water', 'salinity', 'ppt'),  
+               (decorated_float, 'water', 'Redox potential', 'mV'),
+               (decorated_float, 'water', 'turbidity', 'NTU'),
+               (decorated_float, 'water', 'LDO%', '%'),
+               (decorated_float, 'water', 'dissolved oxygen', 'mg/l')
                ]
 
 class Sonde(lewas.models.Instrument):
