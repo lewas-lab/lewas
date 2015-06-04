@@ -28,6 +28,9 @@ class QualifiedFloat():
     def __float__(self):
         return self.value
 
+    def __repr__(self):
+        return str(self.value)
+
 def decorated_float(value):
     try:
         return float(value)
