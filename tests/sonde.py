@@ -63,11 +63,45 @@ sonde_fields = [ (str, 'time', 'HHMMSS', None),
                (decorated_float, 'water', 'dissolved oxygen', 'mg/l')
                ]
 
+sonde_headers = { 'Time': 'time', 
+		  'Temp': 'temperature',
+                  'pH': 'pH', 
+                  'SpCond': 'specific conductance', 
+                  'Sal': 'salinity', 
+                  'ORP': 'Redox potential', 
+                  'TurbSC': 'turbidity', 
+                  'LDO%': 'LDO%',
+                  'LDO': 'dissolved oxygen'
+}
+
+sonde_typef = { 'Time': str }
+
+sonde_units = { '\xf8C': 'C',
+		'Sat': '%',
+		'Units': 'pH',
+                'HHMMSS': None
+              }
+
+def typef_from_header(label):
+    try:
+        return sonde_typef[label]
+    except KeyError:
+        return decorated_float
+
+def units_from_header(label):
+    try:
+        return sonde_units[label]
+    except KeyError:
+        return label
+
+def parser_from_header(label, units):
+    return lewas.parsers.UnitParser(decorated_float,('water',sonde_headers[label]),units_from_header(units))
+
 class Sonde(lewas.models.Instrument):
             
     def start(self):
         pass
-
+	
     def _fields_from_stream(self):
         for line in self.datastream:
             if line.startswith('HM?:'):
@@ -77,12 +111,13 @@ class Sonde(lewas.models.Instrument):
 
         headers = []
         for (lineno, line) in enumerate(self.datastream):
-            if lineno > 3:
+            if lineno > 4:
                 break
-            headers.append(line.split())
+            headers.append(line.strip().split())
 
-        (metrics, units) = headers[3:4]
-        fields = [ lewas.parsers.UnitParser(decorated_float,'water',mn,u) for (mn,u) in zip(metrics,units) ]
+	logging.debug(('headers: {}\n'.format(headers[3:4])))
+        (metrics, units) = headers[3:5]
+        fields = [ parser_from_header(mn,u) for (mn,u) in zip(metrics,units) ]
         return fields
     
     def init(self):
@@ -92,10 +127,9 @@ class Sonde(lewas.models.Instrument):
             self.fields = [ lewas.parsers.UnitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
         else:
             self.fields = self._fields_from_stream()
-        finally:
+            logging.debug('fields: {}'.format(self.fields))
             #fields = [ lewas.parsers.UnitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
-            self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=self.fields) }
-
+        self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=self.fields) }
 
 if __name__ == '__main__':
     logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
@@ -105,7 +139,7 @@ if __name__ == '__main__':
         config = '../config.example'
     else:
         import serial
-        timeout=1
+        timeout=3
         datastream = serial.Serial("/dev/{}".format(sys.argv[1]), 19200, xonxoff=0,timeout=timeout) #argv[1] e.g. USB0
         config = '../config'
 
