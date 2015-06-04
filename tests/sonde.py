@@ -9,7 +9,7 @@ sys.path.append('../')
 ## What is clearer, a class structure
 
 import lewas.models
-import lewas.parsers
+import lewas.parsers 
 import lewas.datastores
 
 # NOTE: fields and field order are determined by the configuration of
@@ -31,13 +31,17 @@ class QualifiedFloat():
     def __repr__(self):
         return str(self.value)
 
+    def __str__(self):
+        return str(self.value)
+    
 def decorated_float(value):
     try:
         return float(value)
     except ValueError:
         m = dfloat_regex.match(value)
         if m:
-            return QualifiedFloat(m.group(1), m.group(2))
+            qf = QualifiedFloat(m.group(1), m.group(2))
+            return qf
     return None
 
 decorations = { '#': 'Data out of sensor range',
@@ -60,12 +64,39 @@ sonde_fields = [ (str, 'time', 'HHMMSS', None),
                ]
 
 class Sonde(lewas.models.Instrument):
-    fields = [ lewas.parsers.UnitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
-    parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=fields) }
             
     def start(self):
         pass
-        
+
+    def _fields_from_stream(self):
+        for line in self.datastream:
+            if line.startswith('HM?:'):
+                break
+
+        self.datastream.write('H\r\n')
+
+        headers = []
+        for (lineno, line) in enumerate(self.datastream):
+            if lineno > 3:
+                break
+            headers.append(line.split())
+
+        (metrics, units) = headers[3:4]
+        fields = [ lewas.parsers.UnitParser(decorated_float,'water',mn,u) for (mn,u) in zip(metrics,units) ]
+        return fields
+    
+    def init(self):
+        try:
+            self.datastream.write('   ')
+        except IOError:
+            self.fields = [ lewas.parsers.UnitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
+        else:
+            self.fields = self._fields_from_stream()
+        finally:
+            #fields = [ lewas.parsers.UnitParser(t,(mm,mn),u) for t,mm,mn,u in sonde_fields ]
+            self.parsers = { r'(.*)': lewas.parsers.split_parser(delim=' ',fields=self.fields) }
+
+
 if __name__ == '__main__':
     logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
     timeout=0
@@ -82,4 +113,5 @@ if __name__ == '__main__':
     datastore = lewas.datastores.leapi(config)
         
     sonde = Sonde(datastream, config.site)
+    sonde.init()
     sonde.run(datastore, timeout=1)
