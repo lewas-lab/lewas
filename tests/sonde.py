@@ -90,7 +90,8 @@ sonde_typef = { 'Time': str }
 sonde_units = { '\xf8C': 'C',
 		'Sat': '%',
 		'Units': 'pH',
-        'meters', 'm'
+        'meters': 'm',
+        'Volts': 'V',
         'HHMMSS': None
    }
 
