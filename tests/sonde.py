@@ -20,6 +20,14 @@ import lewas.datastores
 
 dfloat_regex = re.compile(r'([0-9]+(?:\.[0-9]+)?)([*~@#?])')
 
+decorations = { '#': ('out_of_range','Data out of sensor range'),
+                '?': ('service_required','User service required or data outside calibrated range but still within sensor range'),
+                '*': ('not_calibrated','Parameter not calibrated'),
+                '~': ('temperature_compensation_error','Temperature compensation error'),
+                '@': ('compensation_error','Non temperature parameter compensation error'),
+              }
+    
+
 class QualifiedFloat():
     def __init__(self, value, qualifier):
         self.value = value
@@ -33,7 +41,14 @@ class QualifiedFloat():
 
     def __str__(self):
         return str(self.value)
-    
+
+    @property
+    def flags(self):
+        try:
+            return [ decorations[self.qualifier][0] ]
+        except KeyError:
+            return []
+
 def decorated_float(value):
     try:
         return float(value)
@@ -44,13 +59,6 @@ def decorated_float(value):
             return qf
     return None
 
-decorations = { '#': 'Data out of sensor range',
-                '?': 'User service required or data outside calibrated range but still within sensor range',
-                '*': 'Parameter not calibrated',
-                '~': 'Temperature compensation error',
-                '@': 'Non temperature parameter compensation error'
-                }
-    
     
 sonde_fields = [ (str, 'time', 'HHMMSS', None),
                (decorated_float, 'water', 'temperature','C'),
@@ -82,8 +90,9 @@ sonde_typef = { 'Time': str }
 sonde_units = { '\xf8C': 'C',
 		'Sat': '%',
 		'Units': 'pH',
-                'HHMMSS': None
-              }
+        'meters', 'm'
+        'HHMMSS': None
+   }
 
 def typef_from_header(label):
     try:
