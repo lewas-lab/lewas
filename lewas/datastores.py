@@ -40,7 +40,10 @@ def marshal_observation(m, config, **kwargs):
     d['stderr'] = getattr(m, 'stderr', None)
         
     d['method_id'] = 1
-    
+
+    if len(m.flags) > 0:
+        d['flags'] = m.flags
+        
     return d
 
 mkey = lambda m: (m.station, m.instrument)

@@ -12,12 +12,13 @@ class Measurement:
         self.value = value
         self.metric = metric
         self.unit = unit
-        self.stderr = kwargs['stderr'] if 'stderr' in kwargs else None
-        self.instrument = kwargs['instrument'] if 'instrument' in kwargs else ""
-        self.station = kwargs['station'] if 'station' in kwargs else ""
-        self.offset = kwargs['offset'] if 'offset' in kwargs else ()
+        self.stderr = kwargs.get('stderr', None)
+        self.instrument = kwargs.get('instrument', "")
+        self.station = kwargs.get('station', "")
+        self.offset = kwargs.get('offset', ())
         self.time = str(datetime.now(TZ))
-
+        self.flags = kwargs.get('flags', [])
+        
     def __repr__(self):
         return "{}/{}/{}: {} {} (stderr: {}, offset: {})".format(self.station, self.instrument, self.metric, self.value, self.unit, self.stderr, self.offset)
 

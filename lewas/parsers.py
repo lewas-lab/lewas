@@ -83,7 +83,11 @@ class UnitParser():
 
     def __call__(self,value):
         v = self.typef(value)
-        return models.Measurement(str(v),self.metric,self.units, instrument=self.instrument, station=self.site, offset=self.offset)
+        mes = models.Measurement(str(v),self.metric,self.units, instrument=self.instrument, station=self.site, offset=self.offset)
+        if hasattr(v,'flags'):
+            mes.flags = getattr(v,'flags')
+
+        return mes
 
     def __repr__(self):
         return "unitParser ({})".format((self.typef,self.metric,self.units,self.instrument,self.site))
