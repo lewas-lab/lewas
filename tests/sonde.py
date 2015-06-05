@@ -63,15 +63,18 @@ sonde_fields = [ (str, 'time', 'HHMMSS', None),
                (decorated_float, 'water', 'dissolved oxygen', 'mg/l')
                ]
 
-sonde_headers = { 'Time': 'time', 
-		  'Temp': 'temperature',
-                  'pH': 'pH', 
-                  'SpCond': 'specific conductance', 
-                  'Sal': 'salinity', 
-                  'ORP': 'Redox potential', 
-                  'TurbSC': 'turbidity', 
-                  'LDO%': 'LDO%',
-                  'LDO': 'dissolved oxygen'
+sonde_headers = { 'Time': ('time', 'HHMMSS'), 
+                  'Temp': ('water','temperature'),
+                  'pH': ('water','pH'), 
+                  'SpCond': ('water','specific conductance'), 
+                  'Sal': ('water','salinity'), 
+                  'ORP': ('water','Redox potential'), 
+                  'TurbSC': ('water','turbidity'), 
+                  'LDO%': ('water', 'LDO%'),
+                  'LDO': ('water', 'dissolved oxygen'),
+                  'Dep100': ('water', 'depth'),
+                  'IBatt': ('battery', 'voltage'),
+                  'EBatt': ('battery', 'voltage')
 }
 
 sonde_typef = { 'Time': str }
@@ -95,7 +98,7 @@ def units_from_header(label):
         return label
 
 def parser_from_header(label, units):
-    return lewas.parsers.UnitParser(decorated_float,('water',sonde_headers[label]),units_from_header(units))
+    return lewas.parsers.UnitParser(decorated_float,sonde_headers[label],units_from_header(units))
 
 class Sonde(lewas.models.Instrument):
             
