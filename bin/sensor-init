@@ -1,0 +1,52 @@
+#!/usr/bin/env python
+
+import argparse
+from sys import argv
+sys.path.append('./')
+
+from lewas import readConfig
+from lewas.sources import serialSource
+from lewas.models import Instrument
+from lewas.stores import RESTStore
+from lewas.leapi import fields as leapiFields
+
+def moduleSource(name, config, **kwargs):
+    #try:
+    print('import datasource from raingauge')
+    _module = __import__(name, fromlist= [ 'datasource' ])
+    return getattr(_module, 'datasource')
+    #except ImportError as e:
+
+def datasource(name, config):
+    if 'baud' in config:
+        kwargs = {k: v for k,v in config.items() if k in ['xonxoff','timeout']}
+        return serialSource(config, **kwargs)
+
+    return moduleSource(name, config)
+
+def load_parser(parser):
+    pkg, module = parser.split('.')
+    _parser = __import__(pkg, fromlist = [ module ])
+    return getattr(_parser, module)
+
+if __name__ == '__main__':
+    from os.path import basename
+    parser = argparse.ArgumentParser(description='LEWAS Sensor controller')
+    parser.add_argument('-c', '--config', default='./config', help='configuration file')
+    parser.add_argument('-n', '--name', default=basename(argv[0]), help='name of sensor')
+    parser.add_argument('-d', '--data-file', help='data file to read from instead of source')
+    args = parser.parse_args()
+
+    config = readConfig(args.config)
+    instrumentConfig = config.instruments[args.name]
+    datastore = RESTStore(config, fields=leapiFields)
+
+    reader = None
+    if args.data_file:
+        reader = FileReader(args.data_file)
+    else:
+        reader = datasource(args.name, instrumentConfig)
+    parser = load_parser(instrumentConfig['parser'])
+    instrument_name = instrumentConfig.get('name', args.name)
+    instrument = Instrument(reader(instrumentConfig), parser=parser(instrumentConfig), name=instrument_name, site=config.site)
+    instrument.run(datastore)

@@ -1,7 +1,14 @@
 [leapi]
 host=http://localhost:5000
 password=changethisafterssl
-endpoint=/observations2
+endpoint=/sites/{site_id}/instruments/{instrument_name}/observations
 
 [main]
 site=test1
+
+# an instrument on a serial port
+[example1]
+dev=/dev/ttyUSB0
+baud=9600
+parser=example1.parser
+

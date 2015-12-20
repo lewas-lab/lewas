@@ -1,74 +1,36 @@
-import json, urllib, urllib2, ConfigParser, os, sys, httplib
-import itertools
-import pytz
-import logging
 import hashlib
+import itertools
+import json
+import logging
 import pickle
+import urllib2
 import time
+import os
 
-class IOPrinter():
-    """A datastore for debug and testing purposes: prints measurements to stdout"""
+from flask_restful import marshal
 
-    def post(self, measurements, **kwargs):
-        print(measurements)
+def mkey(m):
+    return (m.station, m.instrument)
 
-def marshal_observation(m, config, **kwargs):
-    if not hasattr(m, 'value'):
-        logging.error("Error: {} has no attribute 'value'".format(m))
-        return {}
-    if not hasattr(m, 'unit'):
-        logging.error("Error: {} has no attribute 'unit'".format(m))
-        return {}
-    for a in ["unit", "metric"]: #don't check "value" because that breaks if it's 0
-        if not getattr(m,a):
-            logging.error("Error: m.{} ({}) is not truthy".format(a, getattr(m,a)))
-            return {}
-
-    d = {a: getattr(m, a) for a in ["unit", "value", "metric"]}
-
-    d['units'] = dict(abbv=d['unit'])
-    if not isinstance(d['metric'], tuple) or len(d['metric']) != 2:
-        logging.error("Error: d['metric'] ({}) is not a 2-tuple".format(d['metric']))
-        return {}
-    d['metric'] = dict(name=d['metric'][1], medium=d['metric'][0])
-    d['datetime'] = m.time
-    o = getattr(m, 'offset', () )
-
-    if hasattr(o, '__iter__') and len(o) > 0:
-        d['offset'] = dict(zip( ('type','value'), o))
-
-    d['stderr'] = getattr(m, 'stderr', None)
-        
-    d['method_id'] = 1
-
-    if len(m.flags) > 0:
-        d['flags'] = m.flags
-        
-    return d
-
-mkey = lambda m: (m.station, m.instrument)
-
-class leapi():
-    """Datastore for leapi application/json"""
-
-    def __init__(self, config):
+class RESTStore():
+    def __init__(self, config, **kwargs):
         self.config = config
-        
+        self.host = self.config.host
+        self.endpoint = self.config.endpoint
+        self.fields = kwargs.get('fields', getattr(config, 'fields', None))
+
     def post(self, measurements, **kwargs):
-        site_id = None
-        if 'site_id' in kwargs:
-            site_id = kwargs['site_id']
-
         for g,k in itertools.groupby(sorted(measurements, key=mkey), mkey):
-            site_id2, instrument_name = g
-            url = self.config.host + urllib2.quote('/sites/' + site_id + '/instruments/' \
-                                                   + instrument_name + self.config.endpoint)
-            d = [ marshal_observation(m, self.config, datetime=m.time) for m in k]
-
+            site_id, instrument_name = g
+            url = self.host \
+                    + urllib2.quote(self.endpoint.format(site_id=site_id, instrument_name=instrument_name))
+            
+            # marshal measurements into request data
+            d = [ marshal(m, self.fields) for m in k ]
             request = urllib2.Request(url, json.dumps(d),
-                                  {'Content-Type': 'application/json'})
+                    {'Content-Type': 'application/json'})
+            logging.info('request of {} measurements\n'.format(len(d)))
 
-            logging.info("request of {} observations\n".format(len(d)))
             submitRequest(request, self.config)
 
 def submitRequest(request, config, saveOnFail=True):
@@ -91,9 +53,9 @@ def submitRequest(request, config, saveOnFail=True):
         response = opener(request)
         success = True
     except urllib2.HTTPError as e:
-        import traceback; traceback.print_exc()
+        # import traceback; traceback.print_exc()
         logging.error("{}\n\trequest: {}".format(e, request.data))
-	logging.error("\tresponse: {}".format(e.read()));
+        logging.error("\tresponse: {}".format(e.read()));
     except urllib2.URLError as e:
         logging.error("{}\n\turl: {}\n\trequest: {}".format(e, request.get_full_url(), request.data))
     else:
@@ -112,7 +74,6 @@ def submitRequest(request, config, saveOnFail=True):
             fn = os.path.join(config.storage, h.hexdigest())
             with open(fn, 'w') as f:
                 f.write(p)
-    sys.stdout.flush()
     return success
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
