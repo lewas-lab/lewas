@@ -30,6 +30,8 @@ look at your class model and make any changes there too.
 We consider four conceptual objects: instruments, sensors, parsers,
 data models.
 
+![dataflow diagram](misc/dataflow.png)
+
 ## Instrument
 
 An instrument is a device which interfaces with a computer via some

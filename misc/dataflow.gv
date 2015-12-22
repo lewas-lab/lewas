@@ -1,0 +1,17 @@
+digraph G {
+	node [shape=rect];
+	rankdir="LR";
+	Hardware;
+	subgraph cluster {
+		style=filled;
+		color=lightgrey;
+		"Data source";
+		"Tokenizer";
+		"Parser";
+		label="Instrument model"
+	}
+	Hardware -> "Data source";
+	"Data source" -> "Tokenizer" [label="iterable"];
+	"Tokenizer" -> Parser [label="iterable"];
+	"Parser"-> "Data store" [label="Measurements\n(Measurement model)"];
+}
