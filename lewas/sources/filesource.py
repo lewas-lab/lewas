@@ -1,9 +1,14 @@
-def fileSource(config, **kwargs):
-    file_name = kwargs.get('file', config.get('file', None))
-    delay = kwargs.get('delay', config.get('delay', 0))
+import logging
+
+from time import sleep
+
+def fileSource(file_name, **kwargs):
+    delay = kwargs.get('delay', 0)
     def reader():
         with open(file_name, 'r') as f:
+            logging.info('opened file {} for reading'.format(file_name))
             for line in f:
-                yield f
+                logging.debug('yielding line: {}'.format(line.strip()))
+                yield line
                 sleep(delay)
-    return reader
+    return reader()

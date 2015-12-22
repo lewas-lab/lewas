@@ -1,4 +1,5 @@
 import logging
+from itertools import izip, cycle
 
 #class InstrumentMeta(type):
 #       def __new__(cls, name, bases, attrs):
@@ -10,6 +11,15 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+def tokenParser(stream, parsers, **kwargs):
+    """take a stream of tokens and a list of parsers, return an iterator over measurements"""
+    timeout = kwargs.get('timeout', None)
+    for token, parser in izip(stream, cycle(parsers)):
+        m = parser(token)
+        logging.info('created measurement {}'.format(m))
+        if not timeout:
+            yield [m]
+
 class Instrument(object):
     """
     class representing an instrument
@@ -20,15 +30,12 @@ class Instrument(object):
     def __init__(self, datastream, site="test1", **kwargs):
         self.name = kwargs.get('name', getattr(self, '__name__', self.__class__.__name__.lower()))
         self.datastream = datastream
+        if hasattr(self, 'init'):
+            self.init()
         self.site = site
         self.parsers = kwargs.get('parser', getattr(self, 'parsers', None))
-        #for (prop,value) in inspect.getmembers(self):
-        #    print("{0}: {1}".format(prop,value))
 
-        #for (prop,value) in vars(self).iteritems():
-        #    print("{0}: {1}".format(prop,value))
-
-    def _populat_measurement(self, m):
+    def _populate_measurement(self, m):
         setattr(m, 'instrument', self.name)
         setattr(m, 'station', self.site)
         return m
@@ -53,32 +60,10 @@ class Instrument(object):
         else:
             self._readlines(datastore, **kwargs)
 
-    def parse(self, line):
-        # go through list of user supplied parsers, find a line that matches
-        result = []
-        logger.log(logging.INFO,"line:{}".format(line))
-        if hasattr(self.parsers, 'items'):
-            for (pat, parser) in self.parsers.items():
-                pat = re.compile(pat)
-                m = pat.match(line)
-                if m:
-                    result = parser(m.group(1))
-        else:
-            result = getattr(self,'parsers')(line)
-
-        return result
-
     def _readlines(self, datastore, **kwargs):
-        measurements = []
-        timeout = kwargs.get('timeout', 0)
-        for line in self.datastream:
-            try:
-                measurements = measurements + [ self._populat_measurement(m) for m in self.parse(line) if m ]
-            except ValueError as e:
-                print("ParseError: {}\ndata: {}".format(str(e), line))
-            else:
-                if not timeout:
-                    datastore.post(measurements, **kwargs)
-                    measurements = []
-        if timeout:
-            datastore.post(measurements, **kwargs)
+        tokenizer=kwargs.pop('tokenizer', None)
+        datastream = self.datastream if tokenizer is None else tokenizer(self.datastream)
+        logging.info('reading from datastream {}'.format(datastream))
+        for measurements in tokenParser(datastream, self.parsers, **kwargs):
+            logging.info('posting {} measurements as 1 request'.format(len(measurements)))
+            datastore.post([ self._populate_measurement(m) for m in measurements if m.unit is not None ], **kwargs)

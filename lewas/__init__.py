@@ -10,3 +10,5 @@ def getsite(config):
     c = ConfigParser.RawConfigParser()
     c.read(os.path.abspath(config))
     return c.get("main", "site")
+
+

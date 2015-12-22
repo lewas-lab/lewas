@@ -6,18 +6,35 @@ import pickle
 import urllib2
 import time
 import os
+from collections import namedtuple
 
 from flask_restful import marshal
+
+from lewas.exceptions import ConfigError
 
 def mkey(m):
     return (m.station, m.instrument)
 
+auth_attrs = ['password', 'sslcrt', 'sslkey']
+
+Auth = namedtuple('Auth', ' '.join(auth_attrs))
 class RESTStore():
-    def __init__(self, config, **kwargs):
-        self.config = config
-        self.host = self.config.host
-        self.endpoint = self.config.endpoint
-        self.fields = kwargs.get('fields', getattr(config, 'fields', None))
+    def __init__(self, **kwargs):
+        self.host = kwargs.get('host') 
+        self.endpoint = kwargs.get('endpoint')
+        self.fields = kwargs.get('fields', None)
+        self.saveOnFail = kwargs.get('saveOnFail', True)
+        self.storage = kwargs.get('storage', None) 
+        self.auth = Auth( *[ kwargs.get(label, None) for label in auth_attrs ] )
+        #try
+        if self.saveOnFail:
+            try:
+                fn = save_request({ 'test': 'to check for write permission' }, self.storage)
+                os.remove(fn)
+            except AttributeError:
+                raise ConfigError('saveOnFail is set but could not find storage information')
+            except IOError:
+                raise ConfigError('{}: could not write to storage directory, does it even exist?'.format(self.storage))
 
     def post(self, measurements, **kwargs):
         for g,k in itertools.groupby(sorted(measurements, key=mkey), mkey):
@@ -27,25 +44,29 @@ class RESTStore():
             
             # marshal measurements into request data
             d = [ marshal(m, self.fields) for m in k ]
-            request = urllib2.Request(url, json.dumps(d),
+            try:
+                request = urllib2.Request(url, json.dumps(d),
                     {'Content-Type': 'application/json'})
-            logging.info('request of {} measurements\n'.format(len(d)))
+                logging.info('request of {} measurements\n'.format(len(d)))
+            except TypeError as e:
+                print(e)
+                logging.error('message: {}\nobject: {}'.format(e,d))
+            else:
+                submitRequest(request, self.auth)
 
-            submitRequest(request, self.config)
-
-def submitRequest(request, config, saveOnFail=True):
+def submitRequest(request, auth, saveOnFail=True, **kwargs):
     #config is ONLY used for authentication
-
-    if config.password:
+    storage = kwargs.get('storage') if saveOnFail else None
+    if auth.password:
         d = json.loads(request.data)
         for m in d:
-            m['magicsecret'] = config.password
+            m['magicsecret'] = auth.password
         request.data = json.dumps(d)
 
     response = None
-    if config.sslkey and config.sslcrt:
+    if auth.sslkey and auth.sslcrt:
         opener = urllib2.build_opener(HTTPSClientAuthHandler(
-                        config.sslkey, config.sslcrt)).open
+                        auth.sslkey, auth.sslcrt)).open
     else:
         opener = urllib2.urlopen
     success = False
@@ -67,14 +88,18 @@ def submitRequest(request, config, saveOnFail=True):
         if response is not None:
             logging.info("\tresponse: {}".format(response.read()))
         if saveOnFail and not success:
-            p = pickle.dumps(request)
-            h = hashlib.sha256()
-            h.update(p)
-            fn = str(int(time.mktime(time.gmtime())))+h.hexdigest() #todo: include instrument
-            fn = os.path.join(config.storage, h.hexdigest())
-            with open(fn, 'w') as f:
-                f.write(p)
+            save_request(request, storage)
     return success
+
+def save_request(request, storage):
+    p = pickle.dumps(request)
+    h = hashlib.sha256()
+    h.update(p)
+    fn = str(int(time.mktime(time.gmtime())))+h.hexdigest() #todo: include instrument
+    fn = os.path.join(storage, h.hexdigest())
+    with open(fn, 'w') as f:
+        f.write(p)
+    return fn
 
 class HTTPSClientAuthHandler(urllib2.HTTPSHandler):
     def __init__(self, key, cert):

@@ -1,4 +1,5 @@
 from flask_restful import Resource, fields, marshal_with
+from lewas.exceptions import ConfigError
 
 class MetricField(fields.Raw):
     def format(self, value):
@@ -18,4 +19,9 @@ fields = {
         'flags': fields.List(fields.String)
         }
 
-
+def leapiStore(**kwargs):
+    from lewas.stores import RESTStore
+    try:
+        return RESTStore(fields=fields, **kwargs)
+    except ConfigError as e:
+        raise ConfigError('leapiStorage: ' + e.message)

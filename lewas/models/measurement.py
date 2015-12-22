@@ -17,13 +17,19 @@ class Measurement:
         self.station = kwargs.get('station', "")
         self.offset = kwargs.get('offset', ())
         self.datetime = datetime.now(TZ)
-        self.flags = kwargs.get('flags', [])
+        self.flags = kwargs.get('flags', None)
         
     def __getitem__(self, name):
         return getattr(self, name)
 
     def __repr__(self):
-        return "{}/{}/{}: {} {} (stderr: {}, offset: {})".format(self.station, self.instrument, self.metric, self.value, self.unit, self.stderr, self.offset)
+        _repr = "{}/{}/{}: {} {}".format(self.station, self.instrument, self.metric, self.value, self.unit)
+        _options = { option: getattr(self, option)  for option in ['stderr', 'offset', 'flags'] \
+                if getattr(self, option, None) is not None }
+
+        if _options:
+            _repr = _repr + ' {}'.format(_options)
+        return _repr
 
     def __iter__(self):
         return ((a, getattr(self, a)) for a in ["metric", "value", "unit", "instrument", "station"])

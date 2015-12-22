@@ -11,34 +11,27 @@ def coerce(val):
 		pass
 	return val
 
+def coerced_dict(d):
+    return { k: coerce(v) for k,v in dict(d).items() }
+
 class Config():
     def __init__(self, config="../config"):
         c = ConfigParser.RawConfigParser()
         c.read(os.path.abspath(config))
-	self._config = c
-        d = {i[0]: i[1] for i in c.items("leapi")}
-        for attr in ['host','password','sslkey','sslcrt',
-                ('storage','../requests'),
-                ('endpoint','/observations')]:
-            if hasattr(attr, '__iter__'):
-                setattr(self, attr[0], d.get(attr[0], attr[1]))
-            else:
-                setattr(self, attr, d.get(attr))
-
-        self.storage = os.path.abspath(self.storage)
-        if not os.path.exists(self.storage):
-            os.makedirs(self.storage)
+        self._config = c
 
         self.site = c.get("main", "site")
-	self.instruments = {}
+        self.datastore = self.__getattr__(c.get("main", "datastore"))
 
-	for section in [ s for s in c.sections() if s not in ['main','leapi'] ]:
-		#setattr(self, section, {attr: coerce(val) for (attr,val) in c.items(section) })
-		self.instruments[section] = {attr: coerce(val) for (attr,val) in c.items(section) }
-		#print('adding attributes for section {}'.format(section))
-		#[ setattr(self, attr, val) for (attr,val) in c.items(section) ]
     def __str__(self):
-	return str(self._config)
+        return str(self._config)
 
-    #def __getattr__(self, attr):
-    #	print('items({}): {}'.format(attr, self._config.items(attr)))
+    def get(self, label, default=None):
+        return self._config.get(label, default)
+    
+    @property
+    def datastore(self):
+        return coerced_dict(self._config.items(self._config.get('main', 'datastore')))
+    
+    def __getattr__(self, attr):
+        return coerced_dict(self._config.items(attr))
