@@ -1,4 +1,7 @@
-import RPi.GPIO as GPIO
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError as e:
+    __NOPI__ = true
 
 class GPIOPinSetup():
     def __init__(self, pinnumber, direction, **kwargs):

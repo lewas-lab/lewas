@@ -2,6 +2,8 @@
 host=http://localhost:5000
 password=changethisafterssl
 endpoint=/sites/{site_id}/instruments/{instrument_name}/observations
+# storage is a directory where failed requests will be stored for possible retry
+storage=./requests
 
 [main]
 site=test1

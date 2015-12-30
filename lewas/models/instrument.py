@@ -1,24 +1,49 @@
 import logging
-from itertools import izip, cycle
-
-#class InstrumentMeta(type):
-#       def __new__(cls, name, bases, attrs):
-#               attrs['_name'] = attrs.get('__name__', name.lower())
-#               return super(InstrumentMeta, cls).__new__(cls, name, bases, attrs)
-#
-#       def __init__(self, name, bases, attrs):
-#               super(InstrumentMeta, self).__init__(name, bases, attrs)
+from itertools import izip, imap, cycle, tee, repeat, chain
+from lewas.util import is_indexable_but_not_string
 
 logger = logging.getLogger(__name__)
 
+import sys
+
+def chunkReader(chunked_stream):
+    while chunked_stream.isOpen():
+        chunk = []
+        for line in chunked_stream:
+            chunked.append(line)
+        if chunk:
+            yield chunk
+
+def matchedTokenParser(stream, parsers, **kwargs):
+    logger.log(logging.DEBUG, 'matchedTokenParser')
+    for line in stream:
+        for regex, parser in parsers.items():
+            m = regex.match(line)
+            logger.log(logging.DEBUG, 'matching "{}" to {}'.format(line.strip(), regex.pattern))
+            if m:
+                logger.log(logging.DEBUG, 'parsing "{}" with {}'.format(m.group(1), parser))
+                if m.groups():
+                    yield parser(m.group(1))
+                else:
+                    yield parser(line)
+import inspect
+
+def cycleParser(stream, parsers, **kwargs):
+    if callable(parsers):
+        for line in stream:
+            yield parsers(line)
+    elif is_indexable_but_not_string(parsers):
+        for line, parser in zip(stream, cycle(parsers)):
+            yield parser(line)
+    else:
+        raise NotImplementedError('{}: is not callable or an interrable of callables')
 def tokenParser(stream, parsers, **kwargs):
     """take a stream of tokens and a list of parsers, return an iterator over measurements"""
-    timeout = kwargs.get('timeout', None)
-    for token, parser in izip(stream, cycle(parsers)):
-        m = parser(token)
-        logging.info('created measurement {}'.format(m))
-        if not timeout:
-            yield [m]
+    if hasattr(parsers, 'items'):
+        return matchedTokenParser(stream, parsers, **kwargs)
+    
+    logger.log(logging.DEBUG, 'tokenParser with parser cycle')
+    return cycleParser(stream, parsers, **kwargs)
 
 class Instrument(object):
     """
@@ -47,23 +72,14 @@ class Instrument(object):
         if 'site_id' not in kwargs:
             kwargs['site_id'] = self.site
 
-        timeout = kwargs.get('timeout', 0)
+        datastream = self.datastream
+        parser = self.parsers
 
-        if timeout:
-            if not hasattr(self.datastream, 'timeout'):
-                logging.warn("datastream {} does not have a timeout attribute, is it a PySerial stream?\n".format(self.datastream))
-            while True:
-                try:
-                    self._readlines(datastore, **kwargs)
-                except (KeyboardInterrupt, SystemExit):
-                    break
-        else:
-            self._readlines(datastore, **kwargs)
+        if hasattr(datastream, 'timeout') and getattr(datastream, 'timeout') is not None:
+            datastream = chunkReader(datastream)
+            parser = chunkParser(parser)
 
-    def _readlines(self, datastore, **kwargs):
-        tokenizer=kwargs.pop('tokenizer', None)
-        datastream = self.datastream if tokenizer is None else tokenizer(self.datastream)
-        logging.info('reading from datastream {}'.format(datastream))
-        for measurements in tokenParser(datastream, self.parsers, **kwargs):
-            logging.info('posting {} measurements as 1 request'.format(len(measurements)))
-            datastore.post([ self._populate_measurement(m) for m in measurements if m.unit is not None ], **kwargs)
+        logger.log(logging.INFO, 'reading from datastream {}'.format(datastream))
+        for mlist in tokenParser(datastream, parser):
+            logger.log(logging.DEBUG,'posting with mlist {}'.format(mlist))
+            datastore.post(map(self._populate_measurement, mlist))

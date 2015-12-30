@@ -12,6 +12,8 @@ from flask_restful import marshal
 
 from lewas.exceptions import ConfigError
 
+logger = logging.getLogger(__name__)
+
 def mkey(m):
     return (m.station, m.instrument)
 
@@ -42,17 +44,20 @@ class RESTStore():
             url = self.host \
                     + urllib2.quote(self.endpoint.format(site_id=site_id, instrument_name=instrument_name))
             
+            logger.log(logging.DEBUG, 'posting to {}'.format(url))
             # marshal measurements into request data
+            #for m in k:
+            #    logger.log(logging.DEBUG, 'm: {}'.format(m))
             d = [ marshal(m, self.fields) for m in k ]
             try:
                 request = urllib2.Request(url, json.dumps(d),
                     {'Content-Type': 'application/json'})
-                logging.info('request of {} measurements\n'.format(len(d)))
+                logger.log(logging.INFO, 'request of {} measurements\n'.format(len(d)))
             except TypeError as e:
                 print(e)
-                logging.error('message: {}\nobject: {}'.format(e,d))
+                logger.log(logging.ERROR, 'message: {}\nobject: {}'.format(e,d))
             else:
-                submitRequest(request, self.auth)
+                submitRequest(request, self.auth, storage=self.storage, **kwargs)
 
 def submitRequest(request, auth, saveOnFail=True, **kwargs):
     #config is ONLY used for authentication
@@ -75,18 +80,18 @@ def submitRequest(request, auth, saveOnFail=True, **kwargs):
         success = True
     except urllib2.HTTPError as e:
         # import traceback; traceback.print_exc()
-        logging.error("{}\n\trequest: {}".format(e, request.data))
-        logging.error("\tresponse: {}".format(e.read()));
+        logger.log(logging.ERROR, "{}\n\trequest: {}".format(e, request.data))
+        logger.log(logging.ERROR, "\tresponse: {}".format(e.read()));
     except urllib2.URLError as e:
-        logging.error("{}\n\turl: {}\n\trequest: {}".format(e, request.get_full_url(), request.data))
+        logger.log(logging.ERROR, "{}\n\turl: {}\n\trequest: {}".format(e, request.get_full_url(), request.data))
     else:
-        logging.info("{}\t{}\n\trequest: {}".format(
+        logger.log(logging.INFO, "{}\t{}\n\trequest: {}".format(
                 response.getcode(), request.get_full_url(), request.data))
 	#TODO: would it be more clear to have the
 	#if saveOnFail # here?
     finally:
         if response is not None:
-            logging.info("\tresponse: {}".format(response.read()))
+            logger.log(logging.INFO, "\tresponse: {}".format(response.read()))
         if saveOnFail and not success:
             save_request(request, storage)
     return success

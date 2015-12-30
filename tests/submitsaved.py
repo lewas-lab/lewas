@@ -10,7 +10,10 @@ config = "../config"
 config = lewas.readConfig(config)
 for fn in sys.argv[1:]:
     if not os.path.isfile(fn):
-        print "can't read " + fn
+	sys.stderr.write('{}: not a file\n'.format(fn))
         continue
-    lewas.datastores.submitRequest(pickle.load(open(fn)), config, False)
-    print "processed", fn
+    if lewas.datastores.submitRequest(pickle.load(open(fn)), config, False):
+    	base, fn = os.path.split(fn)
+    	os.rename(base+os.sep+fn, 'request_complete'+os.sep+fn)
+	#print "moving {} to {}".format(base+os.sep+fn, 'request_complete'+os.sep+fn) 
+    #print "processed", fn

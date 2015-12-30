@@ -1,7 +1,9 @@
 #!/usr/bin/env python
 import logging
+import os
 
 from sys import argv
+import sys
 sys.path.append('./')
 
 from lewas import readConfig
@@ -10,9 +12,19 @@ from lewas.models import Instrument
 from lewas.leapi import leapiStore
 import lewas.cli as cli
 
+log_level = { 1: logging.INFO,
+              2: logging.DEBUG
+            }
+
+
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.DEBUG)
+    logging.basicConfig(level=getattr(logging, os.environ.get('LOGGING_LEVEL','WARN')))
     args = cli.parse()
+    if args.args.verbosity:
+        logging.basicConfig(level=log_level[args.args.verbosity])
     config = args.config
     instrument = Instrument(args.reader, parser=args.parser, name=args.instrument_name, site=config['site'])
-    instrument.run(args.datastore, tokenizer=args.tokenizer(config))
+    #kwargs = {}
+    if args.tokenizer is not None:
+        config['tokenizer'] = args.tokenizer
+    instrument.run(args.datastore, **config)

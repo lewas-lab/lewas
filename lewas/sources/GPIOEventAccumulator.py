@@ -1,8 +1,12 @@
 import logging
 import threading
 import signal
-import RPi.GPIO as GPIO
 from time import sleep
+
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError:
+    __NOPI__ = True
 
 class GPIOEventAccumulator:
 	def __init__(self, channel, **kwargs):

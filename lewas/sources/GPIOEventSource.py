@@ -1,9 +1,12 @@
 import logging
 from time import sleep
+try:
+    import RPi.GPIO as GPIO
+except RuntimeError as e:
+    __NOPI__ = True
 
-import RPi.GPIO as GPIO
 from GPIOEventAccumulator import GPIOEventAccumulator
-import rpi
+import lewas.rpi as rpi
 
 def first_inpin(pins):
     for pin in pins:
@@ -16,7 +19,7 @@ def GPIOEventSource(pin_setup, **kwargs):
     direction = kwargs.pop('direction', GPIO.RISING)
     bouncetime = kwargs.pop('bouncetime', 200)
     interval = kwargs.pop('interval', 1)
-    detect_method = kwargs.pop('detect_method', 'poll')
+    detect_method = kwargs.pop('detect_method', 'event')
 
     GPIO.setmode(mode)
 

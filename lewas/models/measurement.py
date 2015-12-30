@@ -9,6 +9,7 @@ TZ = pytz.timezone('US/Eastern') # TODO: move to config parameter
 
 class Measurement:
     def __init__(self, value, metric, unit, **kwargs):
+        logger.log(logging.DEBUG, 'value: {}, kwargs: {}'.format(value, kwargs))
         self.value = value
         self.metric = metric
         self.unit = unit
@@ -16,7 +17,7 @@ class Measurement:
         self.instrument = kwargs.get('instrument', "")
         self.station = kwargs.get('station', "")
         self.offset = kwargs.get('offset', ())
-        self.datetime = datetime.now(TZ)
+        self.datetime = kwargs.get('datetime', datetime.now(TZ))
         self.flags = kwargs.get('flags', None)
         
     def __getitem__(self, name):
@@ -30,9 +31,6 @@ class Measurement:
         if _options:
             _repr = _repr + ' {}'.format(_options)
         return _repr
-
-    def __iter__(self):
-        return ((a, getattr(self, a)) for a in ["metric", "value", "unit", "instrument", "station"])
 
     def __nonzero__(self):
         return self.value is not None and self.metric is not None and self.unit is not None

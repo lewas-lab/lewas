@@ -1,42 +1,38 @@
-from unitparser import UnitParser
+import logging
+import re
 
-def split_parser(**kwargs):
-    return lambda astring: _split_parser(astring, **kwargs)
+logger = logging.getLogger(__name__)
 
-def _split_parser(astring, **kwargs):
-    """regexp: a regular expression that will be applied to the full line, 
-               string to parse should be in the first match group
-       astring: the string to parse
-       delim:   character to split string on
-    """
-    delim = " "
-    if 'delim' in kwargs:
-        delim = kwargs['delim']
-
-    if 'regexp' in kwargs:
-        try:
-            values = kwargs['regexp'].search(astring).group(1).split(delim)
-        except AttributeError as e:
-            raise ParseError("/{0}/ does not match '{1}'".format(kwargs['regexp'].pattern,astring))
-    else:
-        values = filter(None,astring.split(delim))
-
-    if 'types' in kwargs:
-        types = kwargs['types']
-    else:
-        types = [float]*len(values)
+def split_parser(*args, **kwargs):
+    """A split parser accepts a string and splits it on a regular
+    expression. If the regular expression contains matching groups,
+    those groups are included as items in the output list. See re.split
+    for details.
+    Optional keyword arguments:
         
-    if 'helper' in kwargs:
-        return [ kwargs['helper'](value) for value in values ]
-    elif 'fields' in kwargs:
-        fields = kwargs['fields']
-        measurements = [ p(v) for p,v in zip(fields,values) if isinstance(p,UnitParser) ]
-        for p,v in zip(fields,values):
-            if isinstance(p,AttrParser):
-                p(measurements,v)
-        #print("measuring: {}".format( [ m.metric for m in measurements ] ))
-        return measurements
-    else:
-        return [ typef(value) for (typef,value) in zip(types,values) ]
+        compact: default True, filter any non-Truthy items from result
+        """
+    def inner(astring):
+        try:
+            regex = re.compile(args[0])
+        except IndexError:
+            regex = re.compile(r'\s+')
+        logger.log(logging.DEBUG, 'parsing with ({}): {}'.format(regex.pattern, astring))
+        result = regex.split(astring)
+        if kwargs.get('compact', True):
+            result = filter(lambda m: m, result)
+        logger.log(logging.DEBUG, 'result: {}'.format(result))
+        return result
+    return inner
 
+if __name__ == '__main__':
+    from lewas.tokenizers import grouper
+    lines = [ '1* 2+3',
+              '4 5* 6+',
+              '7+ 8 9*' ]
 
+    sep = re.compile(r'(?:([{}])\s*|\s+)'.format('*+'))    
+    
+    sp = split_parser(splitre=sep)
+
+    print(sp)
