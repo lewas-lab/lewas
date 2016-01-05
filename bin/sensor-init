@@ -24,7 +24,4 @@ if __name__ == '__main__':
         logging.basicConfig(level=log_level[args.args.verbosity])
     config = args.config
     instrument = Instrument(args.reader, parser=args.parser, name=args.instrument_name, site=config['site'])
-    #kwargs = {}
-    if args.tokenizer is not None:
-        config['tokenizer'] = args.tokenizer
     instrument.run(args.datastore, **config)
