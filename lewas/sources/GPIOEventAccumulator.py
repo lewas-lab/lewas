@@ -1,7 +1,7 @@
 import logging
 import threading
 import signal
-from time import sleep
+from time import sleep, time
 
 try:
     import RPi.GPIO as GPIO
@@ -40,7 +40,7 @@ class GPIOEventAccumulator:
 		GPIO.cleanup()
 
 	def _accumulate(self, event):
-		logging.debug('GPIOEventAccumulator._accumulate()')
+		logging.debug('{} GPIOEventAccumulator._accumulate()'.format(time))
 		self._count = self._count + 1
 
 	@property
