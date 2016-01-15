@@ -40,7 +40,7 @@ class GPIOEventAccumulator:
 		GPIO.cleanup()
 
 	def _accumulate(self, event):
-		logging.debug('{} GPIOEventAccumulator._accumulate()'.format(time))
+		logging.debug('{} GPIOEventAccumulator._accumulate()'.format(time()))
 		self._count = self._count + 1
 
 	@property
