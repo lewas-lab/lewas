@@ -33,8 +33,8 @@ def GPIOEventSource(pin_setup, **kwargs):
     input_pin = first_inpin(pin_setup)
     with GPIOEventAccumulator(input_pin.channel, mode=detect_method, direction=direction, bouncetime=bouncetime) as events:
         while events.is_alive:
-            yield events.count
             sleep(interval)
+            yield events.count
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
