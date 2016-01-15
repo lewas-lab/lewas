@@ -45,8 +45,7 @@ class GPIOEventAccumulator:
 
 	@property
 	def count(self):
-		this_count = self._count
-		self._count = 0
+		this_count, self._count = self._count, 0
 		return this_count
 
 	@property
