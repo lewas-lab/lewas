@@ -12,6 +12,5 @@ digraph G {
 	}
 	Hardware -> "Data source";
 	"Data source" -> "Tokenizer" [label="iterable"];
-	"Tokenizer" -> Parser [label="iterable"];
-	"Parser"-> "Data store" [label="Measurements\n(Measurement model)"];
+	"Parser..."-> "Data store" [label="Measurements\n(Measurement model)"];
 }
